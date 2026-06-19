@@ -3,7 +3,6 @@ import '../styles/Productos.css'
 function Productos() {
   return (
     <section className="page-container">
-      <h1>Nuestros Productos</h1>
       <div className="productos-grid">
         <div className="producto-card">
           <h3>Placa de Video RTX 4060</h3>

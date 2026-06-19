@@ -5,6 +5,7 @@ import logoCerrado from '../assets/LogoComputerChipOjosCerrados.png'
 import searchGato from '../assets/SearchGato.png'
 import ingresarEmoji from '../assets/IngresarEmojiBlanco.png'
 import carritoEmoji from '../assets/CarritoEmojiBlanco.png' 
+import ThemeToggle from './ThemeToggle';
 import '../styles/components/Navbar.css'
 
 function Navbar() {
@@ -25,7 +26,7 @@ function Navbar() {
           </button>
         </div>
 
-        {/* Acciones de usuario con nuevos iconos */}
+        {/* Acciones de usuario */}
         <div className="user-actions">
           <div className="action-item">
             <img src={ingresarEmoji} className="action-icon-gato" alt="Ingresar" />
@@ -34,6 +35,10 @@ function Navbar() {
           <div className="action-item cart">
             <img src={carritoEmoji} className="action-icon-gato" alt="Carrito" />
             <span>Carrito</span>
+          </div>
+          {/* ✅ Agregamos el ThemeToggle aquí */}
+          <div className="action-item theme-toggle-wrapper">
+            <ThemeToggle />
           </div>
         </div>
       </div>

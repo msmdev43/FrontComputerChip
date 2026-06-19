@@ -5,30 +5,67 @@
   --color-light-bg: #F3C786;
   --color-cream: #F0CA8C;
   --color-muted: #7F6848;
+  
+  /* Colores del navbar según tema */
+  --navbar-bg-top: #1a150e;
+  --navbar-bg-bottom: #261d11;
+  --navbar-text: #ffffff;
+  --navbar-border: var(--color-accent);
+  --navbar-input-bg: var(--color-primary);
+  --navbar-input-text: #fff;
+  --navbar-input-placeholder: rgba(255, 255, 255, 0.5);
+}
+
+/* 🎯 Tema oscuro (manual) */
+[data-theme="dark"] .main-header {
+  --navbar-bg-top: #0d0b08;
+  --navbar-bg-bottom: #1a150e;
+  --navbar-text: #e5e5e5;
+  --navbar-border: var(--color-accent);
+  --navbar-input-bg: #2d2318;
+  --navbar-input-text: #e5e5e5;
+  --navbar-input-placeholder: rgba(255, 255, 255, 0.4);
+}
+
+/* 🎯 Tema claro (manual) */
+[data-theme="light"] .main-header {
+  --navbar-bg-top: #f5f0ea;
+  --navbar-bg-bottom: #e8e0d8;
+  --navbar-text: #2d2318;
+  --navbar-border: var(--color-accent);
+  --navbar-input-bg: #ffffff;
+  --navbar-input-text: #2d2318;
+  --navbar-input-placeholder: rgba(0, 0, 0, 0.4);
+  border-bottom-color: var(--color-accent);
 }
 
 .main-header {
-  background-color: #1a150e;
-  color: #ffffff;
+  background-color: var(--navbar-bg-top);
+  color: var(--navbar-text);
   font-family: system-ui, sans-serif;
-  border-bottom: 2px solid var(--color-accent);
+  border-bottom: 2px solid var(--navbar-border);
   width: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* 🔥 Barra Superior - SIN max-width, ocupa todo */
+/* 🔥 Barra Superior */
 .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
   gap: 20px;
-  width: 100%;              /* ← Ocupa todo el ancho */
-  max-width: 100%;          /* ← Sin límite */
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   box-sizing: border-box;
+  background-color: var(--navbar-bg-top);
+  transition: background-color 0.3s ease;
 }
 
-/* Contenedor del Logo interactivo */
+/* ============================================ */
+/* 🎯 LOGO - Sin filtros de color */
+/* ============================================ */
 .logo-container {
   display: flex;
   align-items: center;
@@ -43,6 +80,8 @@
   height: 45px;
   width: auto;
   transition: opacity 0.12s ease-in-out;
+  /* 🔥 IMPORTANTE: Sin filter para mantener los colores originales */
+  filter: none !important;
 }
 
 .logo-cerrado {
@@ -51,7 +90,6 @@
   opacity: 0;
 }
 
-/* Efecto hover sobre el logo */
 .logo-container:hover .logo-abierto {
   opacity: 0;
 }
@@ -64,28 +102,27 @@
   font-weight: 800;
   font-size: 1.3rem;
   letter-spacing: 1px;
-  color: #fff;
+  color: var(--navbar-text);
   display: flex;
   flex-direction: column;
   white-space: nowrap;
+  transition: color 0.3s ease;
 }
 
-.sub-brand {
-  font-size: 0.75rem;
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-/* 🔥 Barra de búsqueda - más flexible */
+/* ============================================ */
+/* 🎯 ICONOS DE ACCIÓN - Con filtros de color */
+/* ============================================ */
+/* 🔥 Barra de búsqueda */
 .search-bar-container {
   flex: 1;
   max-width: 600px;
   display: flex;
-  background-color: var(--color-primary);
+  background-color: var(--navbar-input-bg);
   border: 1px solid var(--color-muted);
   border-radius: 6px;
   overflow: hidden;
   min-width: 200px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .search-input {
@@ -93,12 +130,14 @@
   padding: 10px 14px;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--navbar-input-text);
   font-size: 0.95rem;
+  transition: color 0.3s ease;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--navbar-input-placeholder);
+  transition: color 0.3s ease;
 }
 
 .search-input:focus {
@@ -121,63 +160,94 @@
   background-color: rgba(214, 121, 27, 0.15);
 }
 
+/* 🔥 Icono de búsqueda - SIN FILTRO, mantiene su imagen original */
 .search-icon-gato {
   height: 24px;
   width: auto;
   object-fit: contain;
   transition: transform 0.2s ease-in-out;
+  /* 🔥 Sin filter para mantener el color original de la imagen */
+  filter: none !important;
 }
 
 .search-button:hover .search-icon-gato {
   transform: scale(1.1);
 }
 
-/* Acciones de usuario */
+/* ============================================ */
+/* 🎯 ACCIONES DE USUARIO - Con filtros */
+/* ============================================ */
 .user-actions {
   display: flex;
-  gap: 24px; /* Un poquito más de espacio entre elementos */
+  align-items: center;
+  gap: 20px;
   flex-shrink: 0;
 }
 
 .action-item {
   display: flex;
   align-items: center;
-  gap: 8px; /* Espacio entre el icono de gato y el texto */
+  gap: 8px;
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
   transition: color 0.2s;
   white-space: nowrap;
+  color: var(--navbar-text);
 }
 
 .action-item:hover {
   color: var(--color-accent);
 }
 
+/* 🔥 Iconos de acción - con filtro */
 .action-icon-gato {
-  height: 22px; /* Tamaño equilibrado respecto a la tipografía */
+  height: 22px;
   width: auto;
   object-fit: contain;
   transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+  filter: brightness(0) invert(1);  /* Blanco en modo oscuro */
 }
 
-/* Efecto hover: el icono salta sutilmente hacia arriba y se ilumina un poco */
+[data-theme="light"] .action-icon-gato {
+  filter: brightness(0) invert(0);  /* Negro en modo claro */
+}
+
+/* 🔥 Hover de los iconos - mantener el color pero con animación */
 .action-item:hover .action-icon-gato {
   transform: translateY(-2px);
-  filter: brightness(1.2);
+  /* No cambiamos el filter en hover para mantener consistencia */
 }
 
-/* 🔥 Barra Inferior - SIN max-width */
+/* 🔥 Para el carrito en hover - efecto especial si quieres */
+.action-item.cart:hover .action-icon-gato {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Wrapper para el toggle de tema */
+.theme-toggle-wrapper {
+  padding: 0 4px;
+}
+
+/* ============================================ */
+/* 🎯 BARRA INFERIOR */
+/* ============================================ */
 .header-bottom {
   display: flex;
   align-items: center;
-  background-color: #261d11;
+  background-color: var(--navbar-bg-bottom);
   padding: 8px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   width: 100%;
   max-width: 100%;
   margin: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+/* Tema claro - ajustar el borde superior */
+[data-theme="light"] .header-bottom {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .products-btn {
@@ -207,7 +277,7 @@
 }
 
 .nav-links a {
-  color: var(--color-cream);
+  color: var(--navbar-text);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -216,10 +286,12 @@
 }
 
 .nav-links a:hover {
-  color: #fff;
+  color: var(--color-accent);
 }
 
-/* Responsive */
+/* ============================================ */
+/* 🎯 RESPONSIVE */
+/* ============================================ */
 @media (max-width: 1024px) {
   .header-top {
     padding: 12px 16px;
