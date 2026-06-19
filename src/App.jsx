@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
 import Contacto from './pages/Contacto'
+import NotFound from './components/NotFound'
 import './App.css'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           </div>
         </main>
         <div className="ticks"></div>
+        <NotFound />
       </div>
     </BrowserRouter>
   )
