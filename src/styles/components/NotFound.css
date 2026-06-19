@@ -77,3 +77,8 @@
 .not-found-content {
   animation: fadeIn 0.5s ease-out forwards;
 }
+
+.not-found-container::after {
+  content: url('../assets/NotFoundHover.jpg');
+  display: none;
+}
