@@ -1,33 +1,29 @@
-import { useState } from 'react'
+// C:\xampp\htdocs\FrontComputerChip\src\App.jsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import Productos from './pages/Productos'
+import Contacto from './pages/Contacto'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      {/* Colocamos la barra arriba de todo */}
-      <Navbar />
-
-      <section id="center">
-        <div>
-          <h1>¡Bienvenido a ComputerChip!</h1>
-          <p>
-            Tu tienda de hardware de confianza. El logo del gato cerrará los ojos al interactuar con el menú superior.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Productos seleccionados: {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-    </>
+    <BrowserRouter>
+      <div className="app-container">
+        <Navbar />
+        <main className="main-content">
+          {/* 🔥 Wrapper para limitar el ancho del contenido */}
+          <div className="content-wrapper">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/productos" element={<Productos />} />
+              <Route path="/contacto" element={<Contacto />} />
+            </Routes>
+          </div>
+        </main>
+        <div className="ticks"></div>
+      </div>
+    </BrowserRouter>
   )
 }
 

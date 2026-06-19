@@ -1,25 +1,31 @@
+/* C:\xampp\htdocs\FrontComputerChip\src\styles\components\Navbar.css */
 :root {
-  --color-primary: #4D3B21;    /* Marrón/negro base oscuro */
-  --color-accent: #D6791B;     /* Naranja vivo */
-  --color-light-bg: #F3C786;   /* Crema suave */
-  --color-cream: #F0CA8C;      /* Crema complementario */
-  --color-muted: #7F6848;      /* Marrón grisáceo apagado */
+  --color-primary: #4D3B21;
+  --color-accent: #D6791B;
+  --color-light-bg: #F3C786;
+  --color-cream: #F0CA8C;
+  --color-muted: #7F6848;
 }
 
 .main-header {
-  background-color: #1a150e; /* Un fondo casi negro personalizado para e-commerce de hardware */
+  background-color: #1a150e;
   color: #ffffff;
   font-family: system-ui, sans-serif;
   border-bottom: 2px solid var(--color-accent);
+  width: 100%;
 }
 
-/* Barra Superior */
+/* 🔥 Barra Superior - SIN max-width, ocupa todo */
 .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
   gap: 20px;
+  width: 100%;              /* ← Ocupa todo el ancho */
+  max-width: 100%;          /* ← Sin límite */
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* Contenedor del Logo interactivo */
@@ -29,6 +35,8 @@
   gap: 12px;
   position: relative;
   cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .nav-logo {
@@ -59,6 +67,7 @@
   color: #fff;
   display: flex;
   flex-direction: column;
+  white-space: nowrap;
 }
 
 .sub-brand {
@@ -67,7 +76,7 @@
   font-weight: 600;
 }
 
-/* Barra de búsqueda */
+/* 🔥 Barra de búsqueda - más flexible */
 .search-bar-container {
   flex: 1;
   max-width: 600px;
@@ -76,6 +85,7 @@
   border: 1px solid var(--color-muted);
   border-radius: 6px;
   overflow: hidden;
+  min-width: 200px;
 }
 
 .search-input {
@@ -87,6 +97,10 @@
   font-size: 0.95rem;
 }
 
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .search-input:focus {
   outline: none;
   background-color: rgba(255, 255, 255, 0.05);
@@ -95,41 +109,75 @@
 .search-button {
   background-color: transparent;
   border: none;
-  padding: 0 16px;
+  padding: 0 12px;
   cursor: pointer;
-  color: var(--color-accent);
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s;
 }
 
 .search-button:hover {
-  background-color: rgba(214, 121, 27, 0.2);
+  background-color: rgba(214, 121, 27, 0.15);
+}
+
+.search-icon-gato {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
+}
+
+.search-button:hover .search-icon-gato {
+  transform: scale(1.1);
 }
 
 /* Acciones de usuario */
 .user-actions {
   display: flex;
-  gap: 20px;
+  gap: 24px; /* Un poquito más de espacio entre elementos */
+  flex-shrink: 0;
 }
 
 .action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre el icono de gato y el texto */
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .action-item:hover {
   color: var(--color-accent);
 }
 
-/* Barra Inferior (Categorías) */
+.action-icon-gato {
+  height: 22px; /* Tamaño equilibrado respecto a la tipografía */
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+
+/* Efecto hover: el icono salta sutilmente hacia arriba y se ilumina un poco */
+.action-item:hover .action-icon-gato {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
+
+/* 🔥 Barra Inferior - SIN max-width */
 .header-bottom {
   display: flex;
   align-items: center;
   background-color: #261d11;
   padding: 8px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .products-btn {
@@ -142,6 +190,7 @@
   cursor: pointer;
   margin-right: 20px;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .products-btn:hover {
@@ -154,6 +203,7 @@
   gap: 18px;
   margin: 0;
   padding: 0;
+  flex-wrap: wrap;
 }
 
 .nav-links a {
@@ -162,10 +212,38 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .nav-links a:hover {
   color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .header-top {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .search-bar-container {
+    order: 3;
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+  
+  .brand-name {
+    font-size: 1rem;
+  }
+  
+  .user-actions {
+    gap: 12px;
+  }
+  
+  .action-item {
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -173,7 +251,34 @@
     flex-direction: column;
     align-items: stretch;
   }
+  
+  .search-bar-container {
+    order: 2;
+  }
+  
+  .user-actions {
+    order: 3;
+    justify-content: center;
+  }
+  
+  .header-bottom {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 16px;
+  }
+  
+  .products-btn {
+    margin-right: 0;
+    width: 100%;
+    text-align: center;
+  }
+  
   .nav-links {
-    display: none; /* Simplificación para móviles */
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .nav-links a {
+    font-size: 0.8rem;
   }
 }

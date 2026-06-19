@@ -1,0 +1,54 @@
+/* C:\xampp\htdocs\FrontComputerChip\src\pages\Productos.css */
+.page-container {
+  padding: 40px 20px;
+  flex: 1;
+}
+
+.page-container h1 {
+  font-size: 42px;
+  color: var(--text-h);
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 1126px;
+  margin: 0 auto;
+}
+
+.producto-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.producto-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: var(--color-accent);
+}
+
+.producto-card h3 {
+  color: var(--text-h);
+  margin-bottom: 12px;
+}
+
+.producto-card p {
+  color: var(--color-accent);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .productos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+  }
+}
