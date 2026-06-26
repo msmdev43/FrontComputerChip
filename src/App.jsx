@@ -1,31 +1,41 @@
-// C:\xampp\htdocs\FrontComputerChip\src\App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AdminProvider } from './context/AdminContext'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
 import Contacto from './pages/Contacto'
 import NotFound from './components/NotFound'
+import AdminRoutes from './routes/AdminRoutes'
 import './App.css'
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="app-container">
-        <Navbar />
-        <main className="main-content">
-          {/* 🔥 Wrapper para limitar el ancho del contenido */}
-          <div className="content-wrapper">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/contacto" element={<Contacto />} />
-            </Routes>
-          </div>
-        </main>
-        <div className="ticks"></div>
-        <NotFound />
-      </div>
-    </BrowserRouter>
+    <AdminProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Ruta para el panel de administración (sin layout) */}
+          <Route path="/admin/*" element={<AdminRoutes />} />
+          
+          {/* Rutas públicas con layout */}
+          <Route path="/*" element={
+            <div className="app-container">
+              <Navbar />
+              <main className="main-content">
+                <div className="content-wrapper">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/productos" element={<Productos />} />
+                    <Route path="/contacto" element={<Contacto />} />
+                  </Routes>
+                </div>
+              </main>
+              <div className="ticks"></div>
+              <NotFound />
+            </div>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </AdminProvider>
   )
 }
 
