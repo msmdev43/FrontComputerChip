@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import '../styles/Productos.css';
+import Footer from '../components/Footer'
 
-// Datos de ejemplo (simulación de backend)
 const SAMPLE_PRODUCTS = [
   {
     id: 1,
@@ -187,81 +187,85 @@ function Productos() {
   };
 
   return (
-    <section className="productos-page">
-      <div className="page-container">
-        {/* Encabezado */}
-        <div className="productos-header">
-          <h1>Productos</h1>
-          
-          {/* Filtros y búsqueda */}
-          <div className="productos-filters">
-            <div className="filter-group">
-              <select 
-                value={filter} 
-                onChange={(e) => setFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">Todos los productos</option>
-                <option value="instock">En stock</option>
-                <option value="outofstock">Sin stock</option>
-                <option value="on-sale">En oferta</option>
-              </select>
-            </div>
+    <div className="productos-wrapper">
+      <section className="productos-page">
+        <div className="page-container">
+          {/* Encabezado */}
+          <div className="productos-header">
+            <h1>Productos</h1>
             
-            <div className="filter-group">
-              <select 
-                value={sortBy} 
-                onChange={(e) => setSortBy(e.target.value)}
-                className="filter-select"
-              >
-                <option value="popular">Más vendidos</option>
-                <option value="price-low">Precio: menor a mayor</option>
-                <option value="price-high">Precio: mayor a menor</option>
-                <option value="savings">Mayor ahorro</option>
-              </select>
+            {/* Filtros y búsqueda */}
+            <div className="productos-filters">
+              <div className="filter-group">
+                <select 
+                  value={filter} 
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">Todos los productos</option>
+                  <option value="instock">En stock</option>
+                  <option value="outofstock">Sin stock</option>
+                  <option value="on-sale">En oferta</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="popular">Más vendidos</option>
+                  <option value="price-low">Precio: menor a mayor</option>
+                  <option value="price-high">Precio: mayor a menor</option>
+                  <option value="savings">Mayor ahorro</option>
+                </select>
+              </div>
+              
+              <div className="search-group">
+                <input
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+              </div>
             </div>
-            
-            <div className="search-group">
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
+          </div>
+
+          {/* Resultados */}
+          <div className="productos-stats">
+            <span>{sortedProducts.length} productos encontrados</span>
+          </div>
+
+          {/* Grid de productos */}
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Cargando productos...</p>
             </div>
-          </div>
+          ) : sortedProducts.length === 0 ? (
+            <div className="no-products">
+              <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+            </div>
+          ) : (
+            <div className="productos-grid">
+              {sortedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
+          )}
         </div>
-
-        {/* Resultados */}
-        <div className="productos-stats">
-          <span>{sortedProducts.length} productos encontrados</span>
-        </div>
-
-        {/* Grid de productos */}
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Cargando productos...</p>
-          </div>
-        ) : sortedProducts.length === 0 ? (
-          <div className="no-products">
-            <p>No se encontraron productos que coincidan con tu búsqueda.</p>
-          </div>
-        ) : (
-          <div className="productos-grid">
-            {sortedProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+      </section>
+      <Footer />
+      <div className="ticks"></div>
+    </div>
   );
 }
 

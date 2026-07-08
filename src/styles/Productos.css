@@ -1,8 +1,20 @@
 /* C:\xampp\htdocs\FrontComputerChip\src\styles\Productos.css */
-.productos-page {
+
+/* ===== WRAPPER PRINCIPAL ===== */
+.productos-wrapper {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  width: 100%;
   background: var(--bg);
+}
+
+/* ===== SECCIÓN DE PRODUCTOS ===== */
+.productos-page {
+  flex: 1 0 auto;
   padding: 20px 0;
+  background: var(--bg);
+  width: 100%;
 }
 
 .page-container {
@@ -24,13 +36,14 @@
   text-align: center;
 }
 
-/* Filtros */
+/* ===== FILTROS Y BUSCADOR - ESTILOS BASE ===== */
 .productos-filters {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+  margin-bottom: 24px;
 }
 
 .filter-group,
@@ -40,6 +53,7 @@
   max-width: 250px;
 }
 
+/* Inputs y selects */
 .filter-select,
 .search-input {
   width: 100%;
@@ -59,7 +73,76 @@
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
-/* Stats */
+.filter-select:hover,
+.search-input:hover {
+  border-color: var(--color-muted);
+}
+
+/* ===== PLACEHOLDER ===== */
+.search-input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+  font-weight: 400;
+}
+
+/* Modo oscuro con data-theme */
+[data-theme="dark"] .search-input::placeholder {
+  color: #6b7280;
+}
+
+/* Modo oscuro automático */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .search-input::placeholder {
+    color: #6b7280;
+  }
+}
+
+/* Efecto focus en placeholder */
+.search-input:focus::placeholder {
+  opacity: 0.6;
+  transform: translateX(4px);
+  transition: all 0.3s ease;
+}
+
+/* ===== SELECT OPTIONS ===== */
+.filter-select option {
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+[data-theme="dark"] .filter-select option {
+  background: #1f2028;
+  color: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .filter-select option {
+    background: #1f2028;
+    color: #f3f4f6;
+  }
+}
+
+/* ===== GRUPO DE BÚSQUEDA CON ICONO ===== */
+.search-group {
+  position: relative;
+}
+
+.search-group::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.search-group .search-input {
+  padding-left: 36px;
+}
+
+/* ===== STATS ===== */
 .productos-stats {
   text-align: center;
   margin-bottom: 24px;
@@ -67,14 +150,15 @@
   font-size: 14px;
 }
 
-/* Grid */
+/* ===== GRID DE PRODUCTOS ===== */
 .productos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
+  padding-bottom: 20px;
 }
 
-/* Loading */
+/* ===== LOADING ===== */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -102,7 +186,7 @@
   color: var(--text);
 }
 
-/* No products */
+/* ===== NO PRODUCTS ===== */
 .no-products {
   text-align: center;
   padding: 60px 20px;
@@ -113,7 +197,35 @@
   font-size: 18px;
 }
 
-/* Responsive */
+/* ===== FOOTER Y TICKS ===== */
+.ticks {
+  position: relative;
+  width: 100%;
+  height: 9px;
+  border-top: 1px solid var(--border);
+  background-color: var(--bg);
+  flex-shrink: 0;
+}
+
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  top: -4.5px;
+  border: 5px solid transparent;
+}
+
+.ticks::before {
+  left: 0;
+  border-left-color: var(--border);
+}
+
+.ticks::after {
+  right: 0;
+  border-right-color: var(--border);
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .productos-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -150,5 +262,20 @@
   
   .page-container {
     padding: 0 12px;
+  }
+  
+  .filter-select,
+  .search-input {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  
+  .search-group .search-input {
+    padding-left: 32px;
+  }
+  
+  .search-group::before {
+    font-size: 12px;
+    left: 10px;
   }
 }

@@ -4,7 +4,7 @@
   flex-direction: column;
   min-height: 100svh;
   width: 100%;
-  background-color: var(--bg);  /* ← Fondo para el contenido */
+  background-color: var(--bg);
 }
 
 .main-content {
@@ -12,28 +12,30 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0;          /* ← Sin padding para que el fondo sea continuo */
+  padding: 0;
   margin: 0;
+  min-height: 0; /* Importante: permite que el flex funcione correctamente */
 }
 
-/* 🔥 Si quieres que el contenido tenga un límite de ancho */
+/* 🔥 Contenedor de contenido con límite de ancho */
 .content-wrapper {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
-  flex: 1;
+  flex: 1 0 auto; /* No se encoge, pero puede crecer */
   display: flex;
   flex-direction: column;
 }
 
+/* Footer y ticks - siempre al final */
 .ticks {
   position: relative;
   width: 100%;
   height: 9px;
   border-top: 1px solid var(--border);
-  margin-top: auto;
-  background-color: var(--bg);  /* ← Fondo consistente */
+  background-color: var(--bg);
+  flex-shrink: 0;
 }
 
 .ticks::before,

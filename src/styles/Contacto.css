@@ -1,8 +1,21 @@
-/* C:\xampp\htdocs\FrontComputerChip\src\pages\Contacto.css */
+/* C:\xampp\htdocs\FrontComputerChip\src\styles\Contacto.css */
+
+/* ===== WRAPPER PRINCIPAL ===== */
+.contacto-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+}
+
+/* ===== CONTENIDO ===== */
 .contacto-container {
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
+  padding: 40px 20px;
+  flex: 1 0 auto;
 }
 
 .contacto-subtitle {
@@ -41,6 +54,7 @@
   color: var(--text-h);
   font-size: 1rem;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -69,8 +83,55 @@
   box-shadow: var(--shadow);
 }
 
+/* ===== TICKS ===== */
+.ticks {
+  position: relative;
+  width: 100%;
+  height: 9px;
+  border-top: 1px solid var(--border);
+  background-color: var(--bg);
+  flex-shrink: 0;
+}
+
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  top: -4.5px;
+  border: 5px solid transparent;
+}
+
+.ticks::before {
+  left: 0;
+  border-left-color: var(--border);
+}
+
+.ticks::after {
+  right: 0;
+  border-right-color: var(--border);
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+  .contacto-container {
+    padding: 30px 16px;
+  }
+  
   .contact-form {
     padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contacto-container {
+    padding: 20px 12px;
+  }
+  
+  .contact-form {
+    padding: 16px;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
   }
 }

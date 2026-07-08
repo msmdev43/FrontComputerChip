@@ -30,30 +30,6 @@
   color: var(--text);
 }
 
-.counter-button {
-  font-size: 16px;
-  padding: 12px 28px;
-  border-radius: 8px;
-  color: var(--text-h);
-  background: var(--accent-bg);
-  border: 2px solid var(--border);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  font-family: var(--mono);
-  font-weight: 500;
-}
-
-.counter-button:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-
-.counter-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 @media (max-width: 1024px) {
   .home-container {
     padding: 32px 0 24px;
