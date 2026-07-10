@@ -1,8 +1,10 @@
+// C:\xampp\htdocs\FrontComputerChip\src\App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AdminProvider } from './context/AdminContext'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
+import ProductDetail from './pages/ProductDetail'
 import Contacto from './pages/Contacto'
 import AdminRoutes from './routes/AdminRoutes'
 import './App.css'
@@ -12,10 +14,8 @@ function App() {
     <AdminProvider>
       <BrowserRouter>
         <Routes>
-          {/* Ruta para el panel de administración (sin layout) */}
           <Route path="/admin/*" element={<AdminRoutes />} />
           
-          {/* Rutas públicas con layout - SIN FOOTER */}
           <Route path="/*" element={
             <div className="app-container">
               <Navbar />
@@ -24,6 +24,10 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/productos" element={<Productos />} />
+                    {/* Ruta con slug y ID */}
+                    <Route path="/productos/:slug/:id" element={<ProductDetail />} />
+                    {/* Fallback para compatibilidad */}
+                    <Route path="/productos/:id" element={<ProductDetail />} />
                     <Route path="/contacto" element={<Contacto />} />
                   </Routes>
                 </div>

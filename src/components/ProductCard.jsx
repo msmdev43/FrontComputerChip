@@ -1,34 +1,59 @@
 // C:\xampp\htdocs\FrontComputerChip\src\components\ProductCard.jsx
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/components/ProductCard.css';
 
 const ProductCard = ({ 
   product,
-  onAddToCart,
   onViewDetails
 }) => {
+  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   
+  // Datos del producto en estructura BD
   const {
     id,
-    name,
-    brand,
-    category,
-    subcategory,
-    originalPrice,
-    discountedPrice,
-    savings,
-    rating,
-    reviews,
-    image,
-    inStock,
-    isNew,
-    tags = []
+    nombre,
+    precio,
+    stock,
+    envioGratis,
+    marca,
+    categoria,
+    imagen,
+    oferta
   } = product;
 
-  // Formatear precios en pesos chilenos
+  // Crear slug a partir del nombre del producto
+  const createSlug = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  };
+
+  // Generar URL amigable: /productos/nombre-del-producto/id
+  const getProductUrl = () => {
+    const slug = createSlug(nombre);
+    return `/productos/${slug}/${id}`;
+  };
+
+  // Calcular precios con valores por defecto
+  const hasOffer = oferta !== null && oferta !== undefined;
+  const originalPrice = hasOffer ? (oferta.precioOriginal || precio) : precio;
+  const discountedPrice = hasOffer ? (oferta.precioOferta || precio) : precio;
+  const savings = hasOffer ? (originalPrice - discountedPrice) : 0;
+  const discountPercent = hasOffer && originalPrice > 0
+    ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+    : 0;
+
   const formatPrice = (price) => {
+    if (price === undefined || price === null || isNaN(price)) {
+      return '$0';
+    }
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
@@ -37,34 +62,53 @@ const ProductCard = ({
     }).format(price);
   };
 
-
-
-  // Obtener URL de la imagen con fallback a tu placeholder
   const getImageUrl = () => {
-    // Si hay error o no hay imagen, usar tu placeholder
-    if (imageError || !image) {
+    if (imageError || !imagen) {
       return '/images/product-placeholder.webp';
     }
-    return image;
+    return imagen;
+  };
+
+  // Manejar el clic en la card
+  const handleCardClick = () => {
+    if (onViewDetails) {
+      onViewDetails(id);
+    } else {
+      navigate(getProductUrl());
+    }
   };
 
   return (
-    <div className="product-card">
-      {/* Badge de ahorro */}
-      {savings > 0 && (
+    <div 
+      className="product-card clickable"
+      onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+    >
+      {/* Badges y contenido igual que antes */}
+      {hasOffer && savings > 0 && (
         <div className="product-savings-badge">
           AHORRA ${savings.toLocaleString('es-CL')}
         </div>
       )}
       
-      {/* Badge de nuevo */}
-      {isNew && (
-        <div className="product-new-badge">NUEVO</div>
+      {hasOffer && discountPercent > 0 && (
+        <div className="product-discount-badge">
+          -{discountPercent}%
+        </div>
       )}
       
-      {/* Imagen del producto */}
+      {stock === 0 && (
+        <div className="product-out-of-stock-badge">Sin Stock</div>
+      )}
+      
       <div className="product-image-container">
-        {/* Skeleton loading mientras carga */}
         {!imageLoaded && !imageError && (
           <div className="product-image-skeleton">
             <div className="skeleton-shimmer"></div>
@@ -73,7 +117,7 @@ const ProductCard = ({
         
         <img 
           src={getImageUrl()} 
-          alt={name}
+          alt={nombre}
           className={`product-image ${imageLoaded ? 'loaded' : 'loading'}`}
           loading="lazy"
           onError={() => setImageError(true)}
@@ -82,52 +126,35 @@ const ProductCard = ({
           height="225"
         />
         
-        {/* Mensaje de sin stock */}
-        {!inStock && (
-          <div className="product-out-of-stock">Sin Stock</div>
+        {stock === 0 && (
+          <div className="product-out-of-stock-overlay">Sin Stock</div>
         )}
       </div>
       
-      {/* Información del producto */}
       <div className="product-info">
-        <div className="product-brand">{brand}</div>
-        <h3 className="product-name">{name}</h3>
+        <div className="product-brand">{marca}</div>
+        <h3 className="product-name">{nombre}</h3>
         
-        {/* Categoría/Subcategoría */}
         <div className="product-categories">
-          <span className="category-tag">{category}</span>
-          {subcategory && (
-            <span className="subcategory-tag">{subcategory}</span>
+          <span className="category-tag">{categoria}</span>
+          {envioGratis === 1 && (
+            <span className="free-shipping-tag">🚚 Envío gratis</span>
           )}
         </div>
         
-        {/* Precios */}
         <div className="product-prices">
-          {originalPrice > discountedPrice ? (
+          {hasOffer && originalPrice !== discountedPrice ? (
             <>
               <span className="original-price">{formatPrice(originalPrice)}</span>
               <span className="discounted-price">{formatPrice(discountedPrice)}</span>
             </>
           ) : (
-            <span className="discounted-price">{formatPrice(discountedPrice)}</span>
+            <span className="discounted-price">{formatPrice(precio)}</span>
           )}
         </div>
         
-        {/* Botones de acción */}
-        <div className="product-actions">
-          <button 
-            className="btn-add-to-cart"
-            onClick={() => onAddToCart?.(id)}
-            disabled={!inStock}
-          >
-            {inStock ? 'Agregar al Carrito' : 'Sin Stock'}
-          </button>
-          <button 
-            className="btn-view-details"
-            onClick={() => onViewDetails?.(id)}
-          >
-            Ver Detalles
-          </button>
+        <div className="product-card-hint">
+          <span>Ver detalles</span>
         </div>
       </div>
     </div>
