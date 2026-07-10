@@ -2,14 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById } from '../data/sampleProducts';
-import { useCart } from '../context/CartContext'; // 👈 IMPORTAR useCart
+import { useCart } from '../context/CartContext';
+import ShareModal from '../components/ShareModal'; // 👈 IMPORTAR ShareModal
 import Footer from '../components/Footer';
 import '../styles/ProductDetail.css';
 
 function ProductDetail() {
   const { id, slug } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart(); // 👈 OBTENER addToCart
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +19,8 @@ function ProductDetail() {
   const [activeTab, setActiveTab] = useState('especificaciones');
   const [openQuestion, setOpenQuestion] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [addedToCart, setAddedToCart] = useState(false); // 👈 Feedback visual
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // 👈 NUEVO
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -70,11 +72,9 @@ function ProductDetail() {
     }).format(price);
   };
 
-  // 👈 FUNCIÓN ACTUALIZADA PARA AGREGAR AL CARRITO REAL
   const handleAddToCart = () => {
     if (!product) return;
     
-    // Preparar el producto para el carrito
     const productForCart = {
       id: product.id,
       nombre: product.nombre,
@@ -91,10 +91,7 @@ function ProductDetail() {
       } : null
     };
     
-    // Agregar al carrito usando el contexto
     addToCart(productForCart, quantity);
-    
-    // Feedback visual
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
     
@@ -103,7 +100,6 @@ function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!product) return;
-    // Primero agregar al carrito y luego ir a checkout
     handleAddToCart();
     setTimeout(() => {
       navigate('/carrito');
@@ -117,23 +113,20 @@ function ProductDetail() {
       if (product?.stock && next > product.stock) return product.stock;
       return next;
     });
-    // Resetear feedback al cambiar cantidad
     if (addedToCart) setAddedToCart(false);
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    try {
-      await navigator.share({
-        title: product?.nombre || 'Producto',
-        text: `Mira este producto: ${product?.nombre}`,
-        url: url
-      });
-    } catch (error) {
-      handleCopyLink();
-    }
+  // 👈 ABRIR MODAL DE COMPARTIR
+  const handleShare = () => {
+    setIsShareModalOpen(true);
   };
 
+  // 👈 CERRAR MODAL DE COMPARTIR
+  const closeShareModal = () => {
+    setIsShareModalOpen(false);
+  };
+
+  // 👈 COPIAR ENLACE (para el botón del breadcrumb)
   const handleCopyLink = async () => {
     const url = window.location.href;
     try {
@@ -419,6 +412,14 @@ function ProductDetail() {
       </section>
       <Footer />
       <div className="detail-ticks"></div>
+
+      {/* 👈 MODAL DE COMPARTIR */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={closeShareModal}
+        productName={nombre}
+        productUrl={window.location.href}
+      />
     </div>
   );
 }
