@@ -1,3 +1,4 @@
+// C:\xampp\htdocs\FrontComputerChip\src\components\Footer.jsx
 import { Link } from 'react-router-dom'
 import '../styles/components/Footer.css'
 
@@ -45,7 +46,6 @@ const Footer = () => {
             <li><Link to="/">Inicio</Link></li>
             <li><Link to="/productos">Productos</Link></li>
             <li><Link to="/contacto">Contacto</Link></li>
-            <li><Link to="/admin">Panel Admin</Link></li>
           </ul>
         </div>
 

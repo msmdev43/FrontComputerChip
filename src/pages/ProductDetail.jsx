@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById } from '../data/sampleProducts';
+import { useCart } from '../context/CartContext'; // 👈 IMPORTAR useCart
 import Footer from '../components/Footer';
 import '../styles/ProductDetail.css';
 
 function ProductDetail() {
   const { id, slug } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart(); // 👈 OBTENER addToCart
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +18,7 @@ function ProductDetail() {
   const [activeTab, setActiveTab] = useState('especificaciones');
   const [openQuestion, setOpenQuestion] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false); // 👈 Feedback visual
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -23,6 +26,7 @@ function ProductDetail() {
       setActiveImage(0);
       setQuantity(1);
       setActiveTab('especificaciones');
+      setAddedToCart(false);
       
       await new Promise((resolve) => setTimeout(resolve, 400));
       
@@ -66,14 +70,44 @@ function ProductDetail() {
     }).format(price);
   };
 
+  // 👈 FUNCIÓN ACTUALIZADA PARA AGREGAR AL CARRITO REAL
   const handleAddToCart = () => {
     if (!product) return;
-    console.log(`🛒 Añadir al carrito producto ID: ${product.id}, cantidad: ${quantity}`);
+    
+    // Preparar el producto para el carrito
+    const productForCart = {
+      id: product.id,
+      nombre: product.nombre,
+      precio: product.precio,
+      marca: product.marca,
+      categoria: product.categoria,
+      stock: product.stock,
+      envioGratis: product.envioGratis,
+      imagen: product.imagenes.length > 0 ? product.imagenes[0].url : '/images/product-placeholder.webp',
+      oferta: product.oferta ? {
+        precioOriginal: product.oferta.precioOriginal,
+        precioOferta: product.oferta.precioOferta,
+        descuento: product.oferta.descuento
+      } : null
+    };
+    
+    // Agregar al carrito usando el contexto
+    addToCart(productForCart, quantity);
+    
+    // Feedback visual
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 3000);
+    
+    console.log(`🛒 Añadido al carrito: ${product.nombre} x${quantity}`);
   };
 
   const handleBuyNow = () => {
     if (!product) return;
-    console.log(`💳 Comprar ahora producto ID: ${product.id}, cantidad: ${quantity}`);
+    // Primero agregar al carrito y luego ir a checkout
+    handleAddToCart();
+    setTimeout(() => {
+      navigate('/carrito');
+    }, 500);
   };
 
   const changeQuantity = (delta) => {
@@ -83,6 +117,8 @@ function ProductDetail() {
       if (product?.stock && next > product.stock) return product.stock;
       return next;
     });
+    // Resetear feedback al cambiar cantidad
+    if (addedToCart) setAddedToCart(false);
   };
 
   const handleShare = async () => {
@@ -234,7 +270,12 @@ function ProductDetail() {
 
             {/* Información del producto */}
             <div className="detail-info">
+              <div className="detail-brand">{marca}</div>
               <h1 className="detail-name">{nombre}</h1>
+
+              <div className="detail-categories">
+                <span className="detail-category-tag">{categoria}</span>
+              </div>
 
               {/* Precios: original arriba, oferta + ahorro en la misma línea */}
               <div className="detail-prices">
@@ -271,11 +312,11 @@ function ProductDetail() {
                       </div>
                     </div>
                     <button
-                      className="detail-add-to-cart-btn"
+                      className={`detail-add-to-cart-btn ${addedToCart ? 'added' : ''}`}
                       onClick={handleAddToCart}
                       disabled={!inStock}
                     >
-                      {inStock ? 'AGREGAR AL CARRITO' : 'SIN STOCK'}
+                      {addedToCart ? '✅ AGREGADO' : (inStock ? 'AGREGAR AL CARRITO' : 'SIN STOCK')}
                     </button>
                   </div>
                 )}

@@ -1,5 +1,6 @@
 // C:\xampp\htdocs\FrontComputerChip\src\components\Navbar.jsx
 import { Link } from 'react-router-dom'  
+import { useCart } from '../context/CartContext'; 
 import logoAbierto from '../assets/LogoComputerChip.png'
 import logoCerrado from '../assets/LogoComputerChipOjosCerrados.png'
 import searchGato from '../assets/SearchGato.png'
@@ -9,6 +10,9 @@ import ThemeToggle from './ThemeToggle';
 import '../styles/components/Navbar.css'
 
 function Navbar() {
+  const { getItemCount } = useCart(); 
+  const itemCount = getItemCount();
+
   return (
     <header className="main-header">
       <div className="header-top">
@@ -28,15 +32,19 @@ function Navbar() {
 
         {/* Acciones de usuario */}
         <div className="user-actions">
-          <div className="action-item">
+          <Link to="/login" className="action-item">
             <img src={ingresarEmoji} className="action-icon-gato" alt="Ingresar" />
             <span>Ingresar</span>
-          </div>
-          <div className="action-item cart">
+          </Link>
+          
+          <Link to="/carrito" className="action-item cart">
             <img src={carritoEmoji} className="action-icon-gato" alt="Carrito" />
             <span>Carrito</span>
-          </div>
-          {/* ✅ Agregamos el ThemeToggle aquí */}
+            {itemCount > 0 && (
+              <span className="cart-badge">{itemCount}</span>  // 👈 BADGE CON CONTADOR
+            )}
+          </Link>
+          
           <div className="action-item theme-toggle-wrapper">
             <ThemeToggle />
           </div>

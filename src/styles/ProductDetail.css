@@ -1,5 +1,16 @@
 /* C:\xampp\htdocs\FrontComputerChip\src\styles\ProductDetail.css */
 
+.detail-add-to-cart-btn.added {
+  background: #16a34a !important;
+  color: #fff !important;
+  transition: all 0.3s ease;
+}
+
+.detail-add-to-cart-btn.added:hover {
+  background: #15803d !important;
+  transform: scale(1.02);
+}
+
 /* Contenedor principal */
 .detail-wrapper {
   min-height: 100vh;
