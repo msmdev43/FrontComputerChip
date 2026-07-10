@@ -292,7 +292,7 @@
 }
 
 /* ============================================ */
-/* 🎯 BARRA INFERIOR */
+/* 🎯 BARRA INFERIOR - MEJORADA */
 /* ============================================ */
 .header-bottom {
   display: flex;
@@ -311,6 +311,7 @@
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* ===== BOTÓN PRODUCTOS - MEJORADO ===== */
 .products-btn {
   background-color: var(--color-accent);
   color: white;
@@ -320,14 +321,26 @@
   border-radius: 4px;
   cursor: pointer;
   margin-right: 20px;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
 }
 
 .products-btn:hover {
   background-color: #b56312;
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(214, 121, 27, 0.3);
 }
 
+.products-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===== NAV LINKS ===== */
 .nav-links {
   display: flex;
   list-style: none;
@@ -406,12 +419,14 @@
     flex-wrap: wrap;
     gap: 8px;
     padding: 8px 16px;
+    justify-content: center;
   }
   
   .products-btn {
     margin-right: 0;
     width: 100%;
     text-align: center;
+    justify-content: center;
   }
   
   .nav-links {
@@ -434,6 +449,32 @@
 }
 
 @media (max-width: 480px) {
+  .header-top {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  
+  .brand-name {
+    font-size: 0.85rem;
+  }
+  
+  .nav-logo {
+    height: 35px;
+  }
+  
+  .user-actions {
+    gap: 8px;
+  }
+  
+  .action-item {
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+  
+  .action-icon-gato {
+    height: 18px;
+  }
+  
   .cart-badge {
     top: -5px;
     right: -6px;
@@ -441,5 +482,14 @@
     height: 14px;
     font-size: 0.45rem;
     border-width: 1.5px;
+  }
+  
+  .products-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .nav-links a {
+    font-size: 0.7rem;
   }
 }
