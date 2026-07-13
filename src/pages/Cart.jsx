@@ -55,6 +55,25 @@ function Cart() {
   // Elegir la imagen según el tema
   const carritoIcon = currentTheme === 'dark' ? carritoBlanco : carritoNegro;
 
+  // Componente para manejar imágenes con fallback
+  const ProductImage = ({ src, alt }) => {
+    const [imgSrc, setImgSrc] = useState(src || '/images/product-placeholder.webp');
+
+    useEffect(() => {
+      setImgSrc(src || '/images/product-placeholder.webp');
+    }, [src]);
+
+    return (
+      <img
+        src={imgSrc}
+        alt={alt}
+        onError={() => {
+          setImgSrc('/images/product-placeholder.webp');
+        }}
+      />
+    );
+  };
+
   if (cartItems.length === 0) {
     return (
       <>
@@ -89,8 +108,8 @@ function Cart() {
               {cartItems.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-image">
-                    <img 
-                      src={item.imagen || '/images/product-placeholder.webp'} 
+                    <ProductImage 
+                      src={item.imagen} 
                       alt={item.nombre} 
                     />
                   </div>

@@ -1,3 +1,4 @@
+// C:\xampp\htdocs\FrontComputerChip\src\pages\Admin\AdminLogin.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
@@ -12,28 +13,35 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAdmin();
+  const { login, isAuthenticated } = useAdmin();
 
-  const handleSubmit = async (e) => {
+  // Redirigir si ya está autenticado
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/admin/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Validación simple (en producción usar API real)
+    // Simular validación
+    setTimeout(() => {
+      // Credenciales de prueba
       if (credentials.email === 'admin@computerchip.com' && credentials.password === 'admin123') {
-        login({ email: credentials.email, role: 'admin' });
+        login({ 
+          email: credentials.email, 
+          role: 'admin',
+          name: 'Administrador'
+        });
         navigate('/admin/dashboard');
       } else {
-        setError('Credenciales incorrectas. Intenta nuevamente.');
+        setError('Credenciales incorrectas. Usa: admin@computerchip.com / admin123');
       }
-    } catch (err) {
-      setError('Error al iniciar sesión. Por favor intenta más tarde.');
-    } finally {
       setLoading(false);
-    }
+    }, 800);
   };
 
   return (
@@ -80,6 +88,9 @@ const AdminLogin = () => {
 
           <div className="login-footer">
             <span>🐱 ¡Bienvenido, humano!</span>
+            <span style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
+              Credenciales: admin@computerchip.com / admin123
+            </span>
           </div>
         </form>
       </div>

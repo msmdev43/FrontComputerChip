@@ -1,7 +1,17 @@
+// C:\xampp\htdocs\FrontComputerChip\src\components\Admin\AdminStats.jsx
 import React from 'react';
 import '../../styles/components/admin/AdminStats.css';
 
 const AdminStats = ({ stats }) => {
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
   const statItems = [
     { 
       label: 'Productos', 
@@ -23,7 +33,7 @@ const AdminStats = ({ stats }) => {
     },
     { 
       label: 'Ingresos', 
-      value: `$${stats.revenue.toLocaleString()}`, 
+      value: formatPrice(stats.revenue), 
       icon: '💰',
       color: '#f59e0b'
     }

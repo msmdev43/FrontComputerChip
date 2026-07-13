@@ -1,3 +1,4 @@
+// C:\xampp\htdocs\FrontComputerChip\src\components\Admin\AdminSidebar.jsx
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
@@ -46,7 +47,7 @@ const AdminSidebar = () => {
 
       <div className="sidebar-footer">
         <button onClick={handleLogout} className="logout-btn">
-          🚪 Cerrar Sesión
+          Cerrar Sesión
         </button>
       </div>
     </div>
