@@ -91,7 +91,6 @@ function Cart() {
             </Link>
           </div>
         </div>
-        <Footer />
       </>
     );
   }
@@ -204,7 +203,6 @@ function Cart() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

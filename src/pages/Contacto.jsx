@@ -27,8 +27,6 @@ function Contacto() {
           <button type="submit" className="submit-btn">Enviar mensaje</button>
         </form>
       </section>
-      <Footer />
-      <div className="ticks"></div>
     </div>
   )
 }

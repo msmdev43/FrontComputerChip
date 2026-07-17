@@ -26,46 +26,46 @@ function Navbar() {
 
   return (
     <>
-      <header className="main-header">
-        <div className="header-top">
-          <Link to="/" className="logo-container">  
-            <img src={logoAbierto} className="nav-logo logo-abierto" alt="ComputerChip Logo" />
-            <img src={logoCerrado} className="nav-logo logo-cerrado" alt="ComputerChip Logo Hover" />
-            <span className="brand-name">COMPUTER CHIP</span>
+      <header className="cc-header">
+        <div className="cc-header-top">
+          <Link to="/" className="cc-logo-container">  
+            <img src={logoAbierto} className="cc-logo cc-logo-open" alt="ComputerChip Logo" />
+            <img src={logoCerrado} className="cc-logo cc-logo-closed" alt="ComputerChip Logo Hover" />
+            <span className="cc-brand">COMPUTER CHIP</span>
           </Link>
 
           {/* Barra de búsqueda central */}
-          <div className="search-bar-container">
-            <input type="text" placeholder="Buscar en ComputerChip..." className="search-input" />
-            <button className="search-button">
-              <img src={searchGato} className="search-icon-gato" alt="Buscar" />
+          <div className="cc-search-wrap">
+            <input type="text" placeholder="Buscar en ComputerChip..." className="cc-search-input" />
+            <button className="cc-search-btn">
+              <img src={searchGato} className="cc-search-icon" alt="Buscar" />
             </button>
           </div>
 
           {/* Acciones de usuario */}
-          <div className="user-actions">
-            <Link to="/login" className="action-item">
-              <img src={ingresarEmoji} className="action-icon-gato" alt="Ingresar" />
+          <div className="cc-user-actions">
+            <Link to="/login" className="cc-action">
+              <img src={ingresarEmoji} className="cc-action-icon" alt="Ingresar" />
               <span>Ingresar</span>
             </Link>
             
-            <Link to="/carrito" className="action-item cart">
-              <img src={carritoEmoji} className="action-icon-gato" alt="Carrito" />
+            <Link to="/carrito" className="cc-action cc-action-cart">
+              <img src={carritoEmoji} className="cc-action-icon" alt="Carrito" />
               <span>Carrito</span>
               {itemCount > 0 && (
-                <span className="cart-badge">{itemCount}</span>
+                <span className="cc-cart-badge">{itemCount}</span>
               )}
             </Link>
             
-            <div className="action-item theme-toggle-wrapper">
+            <div className="cc-action cc-theme-wrap">
               <ThemeToggle />
             </div>
           </div>
         </div>
 
-        <nav className="header-bottom">
-          <button className="products-btn" onClick={toggleMenu}>☰ Productos</button>
-          <ul className="nav-links">
+        <nav className="cc-header-bottom">
+          <button className="cc-products-btn" onClick={toggleMenu}>☰ Productos</button>
+          <ul className="cc-nav-links">
             <li><Link to="/">Inicio</Link></li> 
             <li><Link to="/productos">Productos</Link></li> 
             <li><Link to="/contacto">Contacto</Link></li> 

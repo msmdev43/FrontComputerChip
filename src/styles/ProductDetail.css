@@ -666,11 +666,6 @@
   transform: translateY(-2px);
 }
 
-/* Footer ticks */
-.detail-ticks {
-  display: none;
-}
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 860px) {
   .detail-main {

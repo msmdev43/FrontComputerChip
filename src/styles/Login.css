@@ -388,23 +388,6 @@
   margin: 4px 0 2px;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
 /* ============================================ */
 /* LOGIN ACTIONS */
 /* ============================================ */

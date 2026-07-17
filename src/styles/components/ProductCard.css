@@ -1,6 +1,9 @@
 /* C:\xampp\htdocs\FrontComputerChip\src\styles\components\ProductCard.css */
 
-.product-card {
+/* ============================================ */
+/* 🎯 TARJETA PRINCIPAL */
+/* ============================================ */
+.pc-card {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -10,28 +13,33 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  box-shadow: var(--shadow);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   cursor: default;
 }
 
-/* Card clickeable */
-.product-card.clickable {
+.pc-card.pc-clickable {
   cursor: pointer;
 }
 
-.product-card.clickable:hover {
+.pc-card.pc-clickable:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
   border-color: var(--accent);
 }
 
-.product-card.clickable:active {
+[data-theme="dark"] .pc-card.pc-clickable:hover {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+.pc-card.pc-clickable:active {
   transform: translateY(-2px) scale(0.98);
   transition-duration: 0.05s;
 }
 
-/* Badges */
-.product-savings-badge {
+/* ============================================ */
+/* 🎯 BADGES */
+/* ============================================ */
+.pc-savings-badge {
   position: absolute;
   top: 12px;
   left: 12px;
@@ -43,9 +51,10 @@
   border-radius: 6px;
   z-index: 3;
   pointer-events: none;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
-.product-discount-badge {
+.pc-discount-badge {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -57,9 +66,10 @@
   border-radius: 6px;
   z-index: 3;
   pointer-events: none;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
 }
 
-.product-out-of-stock-badge {
+.pc-out-of-stock-badge {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -73,15 +83,17 @@
   pointer-events: none;
 }
 
-/* Imagen */
-.product-image-container {
+/* ============================================ */
+/* 🎯 IMAGEN */
+/* ============================================ */
+.pc-image-container {
   position: relative;
   padding-top: 75%;
   background: var(--code-bg);
   overflow: hidden;
 }
 
-.product-image {
+.pc-image {
   position: absolute;
   top: 0;
   left: 0;
@@ -93,11 +105,11 @@
   transition: opacity 0.3s ease;
 }
 
-.product-image.loaded {
+.pc-image.pc-loaded {
   opacity: 1;
 }
 
-.product-image-skeleton {
+.pc-image-skeleton {
   position: absolute;
   top: 0;
   left: 0;
@@ -106,7 +118,7 @@
   background: var(--code-bg);
 }
 
-.skeleton-shimmer {
+.pc-skeleton-shimmer {
   width: 100%;
   height: 100%;
   background: linear-gradient(
@@ -116,15 +128,15 @@
     var(--code-bg) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: pc-shimmer 1.5s infinite;
 }
 
-@keyframes shimmer {
+@keyframes pc-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
-.product-out-of-stock-overlay {
+.pc-out-of-stock-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -139,28 +151,39 @@
   pointer-events: none;
 }
 
-/* Info */
-.product-info {
+/* ============================================ */
+/* 🎯 INFORMACIÓN - MEJORADO */
+/* ============================================ */
+.pc-info {
   padding: 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-.product-brand {
+/* 🔥 MARCA - Legible en modo claro */
+.pc-brand {
   font-size: 0.8rem;
-  color: var(--text);
-  opacity: 0.7;
+  color: #6b6b7a;
+  opacity: 0.8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
   pointer-events: none;
+  font-weight: 500;
+  text-align: center;
 }
 
-.product-name {
+[data-theme="dark"] .pc-brand {
+  color: #9ca3af;
+  opacity: 0.7;
+}
+
+/* 🔥 NOMBRE - Legible en modo claro */
+.pc-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-h);
+  color: #1a1a2e;
   margin: 0 0 8px 0;
   line-height: 1.3;
   display: -webkit-box;
@@ -169,69 +192,99 @@
   overflow: hidden;
   min-height: 2.6em;
   pointer-events: none;
+  text-align: center;
 }
 
-.product-categories {
+[data-theme="dark"] .pc-name {
+  color: #f3f4f6;
+}
+
+/* ============================================ */
+/* 🎯 CATEGORÍAS - CENTRADO */
+/* ============================================ */
+.pc-categories {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 10px;
   pointer-events: none;
+  justify-content: center;
 }
 
-.category-tag {
+.pc-category-tag {
   font-size: 0.65rem;
   padding: 2px 8px;
   border-radius: 12px;
   background: var(--accent-bg);
   color: var(--accent);
   border: 1px solid var(--accent-border);
+  font-weight: 500;
 }
 
-.free-shipping-tag {
+.pc-free-shipping {
   font-size: 0.65rem;
   padding: 2px 8px;
   border-radius: 12px;
   background: #dcfce7;
   color: #16a34a;
   border: 1px solid #86efac;
+  font-weight: 500;
 }
 
-[data-theme="dark"] .free-shipping-tag {
+[data-theme="dark"] .pc-free-shipping {
   background: #14532d;
   color: #86efac;
   border-color: #22c55e;
 }
 
-/* Precios */
-.product-prices {
+/* ============================================ */
+/* 🎯 PRECIOS - CENTRADO */
+/* ============================================ */
+.pc-prices {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 14px;
   flex-wrap: wrap;
   pointer-events: none;
 }
 
-.original-price {
+.pc-original-price {
   text-decoration: line-through;
   color: var(--text);
   opacity: 0.5;
   font-size: 0.9rem;
 }
 
-.discounted-price {
+.pc-discounted-price {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-h);
 }
 
-.product-card .original-price + .discounted-price {
+/* Con oferta - precio en rojo */
+.pc-card .pc-original-price + .pc-discounted-price {
   color: #dc2626;
 }
 
-/* Indicador "Ver detalles" */
-.product-card-hint {
+[data-theme="dark"] .pc-card .pc-original-price + .pc-discounted-price {
+  color: #ef4444;
+}
+
+/* Sin oferta - precio oscuro en modo claro */
+.pc-card .pc-discounted-price:only-child {
+  color: #1a1a2e;
+}
+
+[data-theme="dark"] .pc-card .pc-discounted-price:only-child {
+  color: #f3f4f6;
+}
+
+/* ============================================ */
+/* 🎯 HINT "VER DETALLES" - CENTRADO */
+/* ============================================ */
+.pc-hint {
   margin-top: auto;
   padding-top: 8px;
   border-top: 1px solid var(--border);
@@ -239,48 +292,49 @@
   font-size: 0.8rem;
   color: var(--accent);
   font-weight: 500;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: all 0.3s ease;
   pointer-events: none;
 }
 
-.product-card.clickable:hover .product-card-hint {
+.pc-card.pc-clickable:hover .pc-hint {
   opacity: 1;
-  color: var(--accent);
 }
 
-.product-card-hint span {
+.pc-hint span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   transition: transform 0.3s ease;
 }
 
-.product-card.clickable:hover .product-card-hint span {
+.pc-card.pc-clickable:hover .pc-hint span {
   transform: translateX(4px);
 }
 
-/* Responsive */
+/* ============================================ */
+/* 🎯 RESPONSIVE */
+/* ============================================ */
 @media (max-width: 768px) {
-  .product-name {
+  .pc-name {
     font-size: 0.85rem;
   }
   
-  .discounted-price {
+  .pc-discounted-price {
     font-size: 1.1rem;
   }
   
-  .product-card-hint {
+  .pc-hint {
     font-size: 0.7rem;
   }
 }
 
 @media (max-width: 480px) {
-  .product-info {
+  .pc-info {
     padding: 12px;
   }
   
-  .product-card-hint {
+  .pc-hint {
     font-size: 0.65rem;
   }
 }

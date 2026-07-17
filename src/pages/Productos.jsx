@@ -147,8 +147,6 @@ function Productos() {
           )}
         </div>
       </section>
-      <Footer />
-      <div className="ticks"></div>
     </div>
   );
 }

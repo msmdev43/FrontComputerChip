@@ -10,8 +10,6 @@ const Home = () => {
           <p>Tu tienda de confianza para componentes de computadora</p>
         </div>
       </div>
-      <Footer />
-      <div className="ticks"></div>
     </div>
   )
 }

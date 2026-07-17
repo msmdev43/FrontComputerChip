@@ -80,7 +80,7 @@ const ProductCard = ({
 
   return (
     <div 
-      className="product-card clickable"
+      className="pc-card pc-clickable"
       onClick={handleCardClick}
       role="link"
       tabIndex={0}
@@ -91,34 +91,34 @@ const ProductCard = ({
         }
       }}
     >
-      {/* Badges y contenido igual que antes */}
+      {/* Badges */}
       {hasOffer && savings > 0 && (
-        <div className="product-savings-badge">
+        <div className="pc-savings-badge">
           AHORRA ${savings.toLocaleString('es-CL')}
         </div>
       )}
       
       {hasOffer && discountPercent > 0 && (
-        <div className="product-discount-badge">
+        <div className="pc-discount-badge">
           -{discountPercent}%
         </div>
       )}
       
       {stock === 0 && (
-        <div className="product-out-of-stock-badge">Sin Stock</div>
+        <div className="pc-out-of-stock-badge">Sin Stock</div>
       )}
       
-      <div className="product-image-container">
+      <div className="pc-image-container">
         {!imageLoaded && !imageError && (
-          <div className="product-image-skeleton">
-            <div className="skeleton-shimmer"></div>
+          <div className="pc-image-skeleton">
+            <div className="pc-skeleton-shimmer"></div>
           </div>
         )}
         
         <img 
           src={getImageUrl()} 
           alt={nombre}
-          className={`product-image ${imageLoaded ? 'loaded' : 'loading'}`}
+          className={`pc-image ${imageLoaded ? 'pc-loaded' : 'pc-loading'}`}
           loading="lazy"
           onError={() => setImageError(true)}
           onLoad={() => setImageLoaded(true)}
@@ -127,33 +127,33 @@ const ProductCard = ({
         />
         
         {stock === 0 && (
-          <div className="product-out-of-stock-overlay">Sin Stock</div>
+          <div className="pc-out-of-stock-overlay">Sin Stock</div>
         )}
       </div>
       
-      <div className="product-info">
-        <div className="product-brand">{marca}</div>
-        <h3 className="product-name">{nombre}</h3>
+      <div className="pc-info">
+        <div className="pc-brand">{marca}</div>
+        <h3 className="pc-name">{nombre}</h3>
         
-        <div className="product-categories">
-          <span className="category-tag">{categoria}</span>
+        <div className="pc-categories">
+          <span className="pc-category-tag">{categoria}</span>
           {envioGratis === 1 && (
-            <span className="free-shipping-tag">🚚 Envío gratis</span>
+            <span className="pc-free-shipping">🚚 Envío gratis</span>
           )}
         </div>
         
-        <div className="product-prices">
+        <div className="pc-prices">
           {hasOffer && originalPrice !== discountedPrice ? (
             <>
-              <span className="original-price">{formatPrice(originalPrice)}</span>
-              <span className="discounted-price">{formatPrice(discountedPrice)}</span>
+              <span className="pc-original-price">{formatPrice(originalPrice)}</span>
+              <span className="pc-discounted-price">{formatPrice(discountedPrice)}</span>
             </>
           ) : (
-            <span className="discounted-price">{formatPrice(precio)}</span>
+            <span className="pc-discounted-price">{formatPrice(precio)}</span>
           )}
         </div>
         
-        <div className="product-card-hint">
+        <div className="pc-hint">
           <span>Ver detalles</span>
         </div>
       </div>

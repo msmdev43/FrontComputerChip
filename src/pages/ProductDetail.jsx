@@ -410,8 +410,6 @@ function ProductDetail() {
           )}
         </div>
       </section>
-      <Footer />
-      <div className="detail-ticks"></div>
 
       {/* 👈 MODAL DE COMPARTIR */}
       <ShareModal

@@ -411,14 +411,6 @@ function Register() {
                 </div>
               </div>
 
-              {/* Checkbox ofertas */}
-              <div className="form-check">
-                <label className="checkbox-label">
-                  <input type="checkbox" />
-                  Quiero recibir ofertas y novedades en mi correo.
-                </label>
-              </div>
-
               <button type="submit" className="login-btn register-btn" disabled={loading}>
                 {loading ? 'Cargando...' : 'Continuar'}
               </button>
@@ -435,7 +427,6 @@ function Register() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

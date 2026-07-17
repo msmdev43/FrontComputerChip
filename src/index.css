@@ -8,16 +8,16 @@
   --color-muted: #7F6848;
   
   /* Variables del sistema - valores por defecto (claro) */
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
+  --text: #4a4a5a;
+  --text-h: #1a1a2e;
+  --bg: #f8f7fa;
+  --border: #e2e0e6;
+  --code-bg: #f0eef3;
   --accent: var(--color-accent);
-  --accent-bg: rgba(214, 121, 27, 0.1);
-  --accent-border: rgba(214, 121, 27, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --accent-bg: rgba(214, 121, 27, 0.12);
+  --accent-border: rgba(214, 121, 27, 0.4);
+  --social-bg: rgba(240, 238, 243, 0.5);
+  --shadow: rgba(0, 0, 0, 0.06) 0 4px 12px;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -45,7 +45,7 @@
   --accent-bg: rgba(192, 132, 252, 0.15);
   --accent-border: rgba(192, 132, 252, 0.5);
   --social-bg: rgba(47, 48, 58, 0.5);
-  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  --shadow: rgba(0, 0, 0, 0.4) 0 4px 12px;
 }
 
 /* 🎯 Mantén el sistema automático como alternativa */
@@ -60,10 +60,9 @@
     --accent-bg: rgba(192, 132, 252, 0.15);
     --accent-border: rgba(192, 132, 252, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    --shadow: rgba(0, 0, 0, 0.4) 0 4px 12px;
   }
 }
-
 
 body {
   margin: 0;

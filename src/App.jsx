@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AdminProvider } from './context/AdminContext'
 import { CartProvider } from './context/CartContext' 
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
@@ -40,6 +41,7 @@ function App() {
                     </Routes>
                   </div>
                 </div>
+                <Footer />
               </div>
             } />
           </Routes>
