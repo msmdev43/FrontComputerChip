@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
-import { SAMPLE_PRODUCTS, MARCAS, CATEGORIAS } from '../../data/sampleProducts';
+import { productoService } from '../../services/productoService';
+import { MARCAS, CATEGORIAS } from '../../data/sampleProducts'; // O puedes traerlas de servicios si ya los tienes
 import '../../styles/admin/AdminProducts.css';
 
 const AdminProducts = () => {
@@ -16,72 +17,73 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState(null);
 
   // ===== LOAD PRODUCTS =====
-  useEffect(() => {
-    const loadProducts = () => {
+  const loadProducts = async () => {
+    try {
       setLoading(true);
-      setTimeout(() => {
-        const activeProducts = SAMPLE_PRODUCTS.filter(p => p.deletedAt === null);
-        setProducts(activeProducts);
-        setLoading(false);
-      }, 500);
-    };
+      const data = await productoService.getAll();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error al cargar los productos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadProducts();
   }, []);
 
   // ===== FILTER PRODUCTS =====
   const filteredProducts = products.filter(product => {
+    // Nota: Dependiendo de tu DTO, la marca y categoría pueden venir como objetos o propiedades planas.
+    // Ajustado de forma segura a la estructura relacional del backend:
+    const brandName = product.marca || product.productosMarcas?.[0]?.marcas?.nombre || '';
+    const categoryName = product.categoria || product.categoriasProductos?.[0]?.categorias?.nombre || '';
+
     const matchSearch = product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        product.marca.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategory = filterCategory === 'all' || product.categoria === filterCategory;
-    const matchBrand = filterBrand === 'all' || product.marca === filterBrand;
+                        brandName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCategory = filterCategory === 'all' || categoryName === filterCategory;
+    const matchBrand = filterBrand === 'all' || brandName === filterBrand;
     return matchSearch && matchCategory && matchBrand;
   });
 
   // ===== HANDLERS =====
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
     
-    const index = SAMPLE_PRODUCTS.findIndex(p => p.id === id);
-    if (index !== -1) {
-      SAMPLE_PRODUCTS[index].deletedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    try {
+      await productoService.softDelete(id);
+      // Actualizamos la lista localmente filtrando el eliminado
       setProducts(products.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Error al eliminar el producto:', error);
+      alert('No se pudo eliminar el producto.');
     }
   };
 
-  const handleSaveProduct = (productData) => {
-    if (editingProduct) {
-      const index = SAMPLE_PRODUCTS.findIndex(p => p.id === editingProduct.id);
-      if (index !== -1) {
-        SAMPLE_PRODUCTS[index] = {
-          ...SAMPLE_PRODUCTS[index],
+  const handleSaveProduct = async (productData) => {
+    try {
+      if (editingProduct) {
+        // Actualizar producto existente
+        await productoService.update(editingProduct.id, productData);
+      } else {
+        // Crear nuevo producto (ajusta los IDs de categoría/marca según tu formulario o requerimiento del DTO)
+        const createRequest = {
           ...productData,
-          updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
+          categoriaIds: productData.categoriaId ? [productData.categoriaId] : [],
+          marcaIds: productData.marcaId ? [productData.marcaId] : []
         };
-        setProducts(products.map(p => 
-          p.id === editingProduct.id ? SAMPLE_PRODUCTS[index] : p
-        ));
+        await productoService.create(createRequest);
       }
-    } else {
-      const newId = Math.max(...SAMPLE_PRODUCTS.map(p => p.id)) + 1;
-      const newProduct = {
-        id: newId,
-        ...productData,
-        stock: 1,
-        envioGratis: 1,
-        createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
-        updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
-        deletedAt: null,
-        imagenes: [{ id: Date.now(), nombre: 'placeholder', url: '/images/product-placeholder.webp', orden: 1 }],
-        especificaciones: [],
-        atributos: [],
-        preguntas: [],
-        oferta: null
-      };
-      SAMPLE_PRODUCTS.push(newProduct);
-      setProducts([...products, newProduct]);
+      
+      // Recargar la lista completa desde el backend para reflejar los cambios
+      await loadProducts();
+      setShowModal(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error al guardar el producto:', error);
+      alert('Ocurrió un error al guardar el producto.');
     }
-    setShowModal(false);
-    setEditingProduct(null);
   };
 
   const clearFilters = () => {
@@ -101,12 +103,12 @@ const AdminProducts = () => {
   };
 
   const hasStock = (stock) => {
-    return stock > 0;
+    return stock === true || stock > 0;
   };
 
   // ===== UNIQUE VALUES =====
-  const uniqueCategories = ['all', ...new Set(products.map(p => p.categoria))];
-  const uniqueBrands = ['all', ...new Set(products.map(p => p.marca))];
+  const uniqueCategories = ['all', ...new Set(products.map(p => p.categoria || p.categoriasProductos?.[0]?.categorias?.nombre).filter(Boolean))];
+  const uniqueBrands = ['all', ...new Set(products.map(p => p.marca || p.productosMarcas?.[0]?.marcas?.nombre).filter(Boolean))];
   const hasActiveFilters = searchTerm || filterCategory !== 'all' || filterBrand !== 'all';
 
   // ===== RENDER =====
@@ -221,43 +223,48 @@ const AdminProducts = () => {
                           </td>
                         </tr>
                       ) : (
-                        filteredProducts.map(product => (
-                          <tr key={product.id}>
-                            <td>#{product.id}</td>
-                            <td>
-                              <span className="product-name">{product.nombre}</span>
-                            </td>
-                            <td><span className="product-brand">{product.marca}</span></td>
-                            <td><span className="product-category">{product.categoria}</span></td>
-                            <td className="product-price">{formatPrice(product.precio)}</td>
-                            <td>
-                              <span className={`stock-badge ${hasStock(product.stock) ? 'stock-yes' : 'stock-no'}`}>
-                                {hasStock(product.stock) ? 'Sí' : 'No'}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="action-buttons">
-                                <button 
-                                  className="btn-action btn-action-edit"
-                                  onClick={() => {
-                                    setEditingProduct(product);
-                                    setShowModal(true);
-                                  }}
-                                  title="Editar producto"
-                                >
-                                  ✏️
-                                </button>
-                                <button 
-                                  className="btn-action btn-action-delete"
-                                  onClick={() => handleDelete(product.id)}
-                                  title="Eliminar producto"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
+                        filteredProducts.map(product => {
+                          const brandName = product.marca || product.productosMarcas?.[0]?.marcas?.nombre || 'N/D';
+                          const categoryName = product.categoria || product.categoriasProductos?.[0]?.categorias?.nombre || 'N/D';
+                          
+                          return (
+                            <tr key={product.id}>
+                              <td>#{product.id}</td>
+                              <td>
+                                <span className="product-name">{product.nombre}</span>
+                              </td>
+                              <td><span className="product-brand">{brandName}</span></td>
+                              <td><span className="product-category">{categoryName}</span></td>
+                              <td className="product-price">{formatPrice(product.precio)}</td>
+                              <td>
+                                <span className={`stock-badge ${hasStock(product.stock) ? 'stock-yes' : 'stock-no'}`}>
+                                  {hasStock(product.stock) ? 'Sí' : 'No'}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="action-buttons">
+                                  <button 
+                                    className="btn-action btn-action-edit"
+                                    onClick={() => {
+                                      setEditingProduct(product);
+                                      setShowModal(true);
+                                    }}
+                                    title="Editar producto"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button 
+                                    className="btn-action btn-action-delete"
+                                    onClick={() => handleDelete(product.id)}
+                                    title="Eliminar producto"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -297,8 +304,8 @@ const ProductModal = ({ product, onClose, onSave, marcas, categorias }) => {
   const [formData, setFormData] = useState({
     nombre: product?.nombre || '',
     precio: product?.precio || '',
-    marca: product?.marca || '',
-    categoria: product?.categoria || '',
+    marcaId: product?.marcaId || '',
+    categoriaId: product?.categoriaId || '',
     garantia: product?.garantia || '12 meses'
   });
 
@@ -308,22 +315,23 @@ const ProductModal = ({ product, onClose, onSave, marcas, categorias }) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.nombre || !formData.precio || !formData.marca || !formData.categoria) {
-      alert('Por favor completa todos los campos');
+    if (!formData.nombre || !formData.precio) {
+      alert('Por favor completa los campos obligatorios');
       setLoading(false);
       return;
     }
 
-    setTimeout(() => {
-      onSave({
+    try {
+      await onSave({
         nombre: formData.nombre,
         precio: parseFloat(formData.precio),
-        marca: formData.marca,
-        categoria: formData.categoria,
-        garantia: formData.garantia
+        garantia: formData.garantia,
+        marcaId: formData.marcaId ? parseInt(formData.marcaId) : null,
+        categoriaId: formData.categoriaId ? parseInt(formData.categoriaId) : null,
       });
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -368,30 +376,28 @@ const ProductModal = ({ product, onClose, onSave, marcas, categorias }) => {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Marca *</label>
+              <label>Marca</label>
               <select
-                value={formData.marca}
-                onChange={e => setFormData({...formData, marca: e.target.value})}
-                required
+                value={formData.marcaId}
+                onChange={e => setFormData({...formData, marcaId: e.target.value})}
               >
                 <option value="">Seleccionar marca</option>
                 {marcas.map(marca => (
-                  <option key={marca.id} value={marca.nombre}>
+                  <option key={marca.id} value={marca.id}>
                     {marca.nombre}
                   </option>
                 ))}
               </select>
             </div>
             <div className="form-group">
-              <label>Categoría *</label>
+              <label>Categoría</label>
               <select
-                value={formData.categoria}
-                onChange={e => setFormData({...formData, categoria: e.target.value})}
-                required
+                value={formData.categoriaId}
+                onChange={e => setFormData({...formData, categoriaId: e.target.value})}
               >
                 <option value="">Seleccionar categoría</option>
                 {categorias.map(cat => (
-                  <option key={cat.id} value={cat.nombre}>
+                  <option key={cat.id} value={cat.id}>
                     {cat.nombre}
                   </option>
                 ))}
