@@ -19,6 +19,17 @@ export const ENDPOINTS = {
         marcas: (id) => `/productos/${id}/marcas`,
         restaurar: (id) => `/productos/${id}/restaurar`
     },
+
+    categorias:{
+        base: '/categorias',
+        porId: (id) =>`/categorias/${id}`,
+        detalle: (id) => `/categorias/${id}/detalle`,
+        buscar: (nombre) => `/categorias/buscar?nombre=${nombre}`,
+        restaurar: (id) => `/categorias/${id}/restore`,
+        eliminarPermanente: (id) => `/categorias/${id}/permanente`
+
+    },
+    
     // Puedes agregar más secciones aquí (usuarios, pedidos, etc.)
     auth: {
         login: '/auth/login',
