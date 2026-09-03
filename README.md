@@ -1,4 +1,4 @@
-# 🖥️ Computer Chip - Panel de Administración
+# 🖥️ Computer Chip 
 
 [![React](https://img.shields.io/badge/React-18.3-blue?logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0-purple?logo=vite)](https://vitejs.dev/)
