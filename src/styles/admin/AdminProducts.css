@@ -170,6 +170,18 @@
 }
 
 /* ============================================
+   ESTADO INACTIVO EN TABLA
+   ============================================ */
+.row-inactive {
+  opacity: 0.6;
+}
+
+.row-inactive .product-name {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+/* ============================================
    PRODUCTO EN TABLA
    ============================================ */
 .product-name {
@@ -213,6 +225,28 @@
 }
 
 /* ============================================
+   STATUS BADGE
+   ============================================ */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+.status-inactive {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+/* ============================================
    BOTONES DE ACCIÓN
    ============================================ */
 .action-buttons {
@@ -251,6 +285,15 @@
 .btn-action-delete:hover {
   background: #4a1a1a;
   color: #f87171;
+}
+
+.btn-action-restore {
+  color: #10b981;
+}
+
+.btn-action-restore:hover {
+  background: #064e3b;
+  color: #34d399;
 }
 
 /* ============================================
@@ -301,6 +344,41 @@
 .empty-state .empty-sub {
   color: #64748b;
   font-size: 14px;
+}
+
+/* ============================================
+   ERROR MESSAGE
+   ============================================ */
+.error-message {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.error-message p {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+}
+
+.error-message .btn-primary {
+  background: #d6791b;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.error-message .btn-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
 }
 
 /* ============================================
@@ -453,7 +531,8 @@
 }
 
 .modal-content .form-group input,
-.modal-content .form-group select {
+.modal-content .form-group select,
+.modal-content .form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #334155;
@@ -463,16 +542,24 @@
   color: #f1f5f9;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  font-family: inherit;
+}
+
+.modal-content .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .modal-content .form-group input:focus,
-.modal-content .form-group select:focus {
+.modal-content .form-group select:focus,
+.modal-content .form-group textarea:focus {
   outline: none;
   border-color: #d6791b;
   box-shadow: 0 0 0 3px rgba(214, 121, 27, 0.15);
 }
 
-.modal-content .form-group input::placeholder {
+.modal-content .form-group input::placeholder,
+.modal-content .form-group textarea::placeholder {
   color: #64748b;
 }
 
@@ -487,6 +574,24 @@
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
+}
+
+/* ============================================
+   CHECKBOX EN MODAL
+   ============================================ */
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #e2e8f0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #d6791b;
 }
 
 /* ============================================
@@ -620,6 +725,10 @@
   .page-header h2 {
     font-size: 18px;
   }
+
+  .modal-content {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -632,7 +741,8 @@
     padding: 6px 8px;
   }
 
-  .stock-badge {
+  .stock-badge,
+  .status-badge {
     font-size: 10px;
     padding: 2px 8px;
   }
@@ -644,12 +754,19 @@
 
   .modal-content {
     padding: 16px;
-    margin: 16px;
+    margin: 12px;
+    width: 95%;
   }
 
   .modal-content .form-group input,
-  .modal-content .form-group select {
+  .modal-content .form-group select,
+  .modal-content .form-group textarea {
     font-size: 13px;
     padding: 8px 10px;
+  }
+
+  .modal-content .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }

@@ -1,10 +1,8 @@
-// C:\xampp\htdocs\FrontComputerChip\src\pages\ProductDetail.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getProductById } from '../data/sampleProducts';
+import { productoService } from '../services/productoService';
 import { useCart } from '../context/CartContext';
-import ShareModal from '../components/ShareModal'; // 👈 IMPORTAR ShareModal
-import Footer from '../components/Footer';
+import ShareModal from '../components/ShareModal';
 import '../styles/ProductDetail.css';
 
 function ProductDetail() {
@@ -14,43 +12,74 @@ function ProductDetail() {
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('especificaciones');
   const [openQuestion, setOpenQuestion] = useState(null);
   const [copied, setCopied] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // 👈 NUEVO
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
-  useEffect(() => {
-    const loadProduct = async () => {
+  // ===== LOAD PRODUCT =====
+  const loadProduct = useCallback(async () => {
+    try {
       setLoading(true);
-      setActiveImage(0);
-      setQuantity(1);
-      setActiveTab('especificaciones');
-      setAddedToCart(false);
+      setError(null);
       
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      
-      const foundProduct = getProductById(id);
-      console.log('🔍 Buscando producto con ID:', id);
-      console.log('📦 Producto encontrado:', foundProduct);
-      
-      if (foundProduct) {
-        const expectedSlug = createSlug(foundProduct.nombre);
-        if (slug && slug !== expectedSlug) {
-          navigate(`/productos/${expectedSlug}/${id}`, { replace: true });
-        }
+      const productId = parseInt(id);
+      if (isNaN(productId)) {
+        setError('ID de producto inválido');
+        setLoading(false);
+        return;
       }
+
+      const data = await productoService.getById(productId);
       
-      setProduct(foundProduct);
+      if (!data) {
+        setError('Producto no encontrado');
+        setLoading(false);
+        return;
+      }
+
+      // Verificar slug
+      const expectedSlug = createSlug(data.nombre);
+      if (slug && slug !== expectedSlug) {
+        navigate(`/productos/${expectedSlug}/${productId}`, { replace: true });
+        return;
+      }
+
+      setProduct(data);
+      
+      // Cargar productos relacionados
+      try {
+        const related = await productoService.getRelated(productId);
+        setRelatedProducts(related || []);
+      } catch (err) {
+        console.warn('No se pudieron cargar productos relacionados:', err);
+      }
+
+    } catch (err) {
+      console.error('Error al cargar producto:', err);
+      setError(err.response?.data?.Error || 'Error al cargar el producto');
+    } finally {
       setLoading(false);
-    };
-    
-    loadProduct();
+    }
   }, [id, slug, navigate]);
 
+  useEffect(() => {
+    loadProduct();
+    // Resetear estado al cambiar de producto
+    setActiveImage(0);
+    setQuantity(1);
+    setActiveTab('especificaciones');
+    setAddedToCart(false);
+  }, [loadProduct]);
+
+  // ===== HELPERS =====
   const createSlug = (text) => {
+    if (!text) return '';
     return text
       .toLowerCase()
       .normalize('NFD')
@@ -72,30 +101,29 @@ function ProductDetail() {
     }).format(price);
   };
 
+  // ===== HANDLERS =====
   const handleAddToCart = () => {
     if (!product) return;
     
     const productForCart = {
       id: product.id,
       nombre: product.nombre,
-      precio: product.precio,
-      marca: product.marca,
-      categoria: product.categoria,
-      stock: product.stock,
-      envioGratis: product.envioGratis,
-      imagen: product.imagenes.length > 0 ? product.imagenes[0].url : '/images/product-placeholder.webp',
+      precio: product.oferta?.precioOferta || product.precio,
+      marca: product.marca?.nombre || product.marca || 'N/A',
+      categoria: product.categoria?.nombre || product.categoria || 'N/A',
+      stock: product.stock || 0,
+      envioGratis: product.envioGratis || 0,
+      imagen: product.imagenes?.length > 0 ? product.imagenes[0].url : '/images/product-placeholder.webp',
       oferta: product.oferta ? {
-        precioOriginal: product.oferta.precioOriginal,
-        precioOferta: product.oferta.precioOferta,
-        descuento: product.oferta.descuento
+        precioOriginal: product.oferta.precioOriginal || product.precio,
+        precioOferta: product.oferta.precioOferta || product.precio,
+        descuento: product.oferta.descuento || 0
       } : null
     };
     
     addToCart(productForCart, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
-    
-    console.log(`🛒 Añadido al carrito: ${product.nombre} x${quantity}`);
   };
 
   const handleBuyNow = () => {
@@ -116,17 +144,14 @@ function ProductDetail() {
     if (addedToCart) setAddedToCart(false);
   };
 
-  // 👈 ABRIR MODAL DE COMPARTIR
   const handleShare = () => {
     setIsShareModalOpen(true);
   };
 
-  // 👈 CERRAR MODAL DE COMPARTIR
   const closeShareModal = () => {
     setIsShareModalOpen(false);
   };
 
-  // 👈 COPIAR ENLACE (para el botón del breadcrumb)
   const handleCopyLink = async () => {
     const url = window.location.href;
     try {
@@ -138,6 +163,7 @@ function ProductDetail() {
     }
   };
 
+  // ===== RENDER: LOADING =====
   if (loading) {
     return (
       <div className="detail-wrapper">
@@ -149,11 +175,12 @@ function ProductDetail() {
     );
   }
 
-  if (!product) {
+  // ===== RENDER: ERROR =====
+  if (error || !product) {
     return (
       <div className="detail-wrapper">
         <div className="detail-not-found">
-          <h2>No encontramos este producto</h2>
+          <h2>⚠️ {error || 'No encontramos este producto'}</h2>
           <p>Puede que ya no esté disponible o el enlace sea incorrecto.</p>
           <Link to="/productos" className="detail-back-to-products">
             Volver a productos
@@ -163,8 +190,8 @@ function ProductDetail() {
     );
   }
 
+  // ===== RENDER: PRODUCT =====
   const {
-    id: productId,
     nombre,
     precio,
     garantia,
@@ -180,7 +207,7 @@ function ProductDetail() {
     preguntas = []
   } = product;
 
-  const hasOffer = oferta !== null && oferta !== undefined;
+  const hasOffer = oferta !== null && oferta !== undefined && oferta.precioOferta > 0;
   const originalPrice = hasOffer ? oferta.precioOriginal : precio;
   const discountedPrice = hasOffer ? oferta.precioOferta : precio;
   const savings = hasOffer ? (originalPrice - discountedPrice) : 0;
@@ -188,9 +215,11 @@ function ProductDetail() {
     ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
     : 0;
 
-  const inStock = stock === 1;
+  const inStock = stock > 0;
+  const brandName = marca?.nombre || marca || 'N/A';
+  const categoryName = categoria?.nombre || categoria || 'N/A';
 
-  const sortedImages = [...imagenes].sort((a, b) => a.orden - b.orden);
+  const sortedImages = [...imagenes].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const mainImage = sortedImages[activeImage]?.url || '/images/product-placeholder.webp';
 
   return (
@@ -202,7 +231,7 @@ function ProductDetail() {
             <nav className="detail-breadcrumb">
               <Link to="/productos">Productos</Link>
               <span className="detail-breadcrumb-sep">/</span>
-              <span>{categoria}</span>
+              <span>{categoryName}</span>
               <span className="detail-breadcrumb-sep">/</span>
               <span className="detail-breadcrumb-current">{nombre}</span>
             </nav>
@@ -246,7 +275,7 @@ function ProductDetail() {
                 <div className="detail-gallery-thumbnails">
                   {sortedImages.map((img, index) => (
                     <button
-                      key={img.id}
+                      key={img.id || index}
                       className={`detail-gallery-thumb ${index === activeImage ? 'active' : ''}`}
                       onClick={() => setActiveImage(index)}
                     >
@@ -263,14 +292,14 @@ function ProductDetail() {
 
             {/* Información del producto */}
             <div className="detail-info">
-              <div className="detail-brand">{marca}</div>
+              <div className="detail-brand">{brandName}</div>
               <h1 className="detail-name">{nombre}</h1>
 
               <div className="detail-categories">
-                <span className="detail-category-tag">{categoria}</span>
+                <span className="detail-category-tag">{categoryName}</span>
               </div>
 
-              {/* Precios: original arriba, oferta + ahorro en la misma línea */}
+              {/* Precios */}
               <div className="detail-prices">
                 {hasOffer && originalPrice > discountedPrice && (
                   <span className="detail-original-price">{formatPrice(originalPrice)}</span>
@@ -283,16 +312,16 @@ function ProductDetail() {
                 </div>
               </div>
 
-              {/* Perks alineados a la izquierda */}
+              {/* Perks */}
               <ul className="detail-perks">
                 <li className={inStock ? 'detail-in-stock' : 'detail-no-stock'}>
-                  {inStock ? '✅ En stock' : '❌ Sin stock'}
+                  {inStock ? `✅ En stock (${stock} unidades)` : '❌ Sin stock'}
                 </li>
                 {envioGratis === 1 && <li>🚚 Envío gratis</li>}
                 {garantia && <li>🛡️ Garantía: {garantia}</li>}
               </ul>
 
-              {/* Selector de cantidad y botones */}
+              {/* Acciones */}
               <div className="detail-actions-container">
                 {inStock && (
                   <div className="detail-action-row">
@@ -323,7 +352,7 @@ function ProductDetail() {
                 </button>
               </div>
 
-              {/* SKU abajo de los botones */}
+              {/* SKU */}
               {codigoSerie && (
                 <div className="detail-sku-container">
                   <span className="detail-sku">SKU: {codigoSerie}</span>
@@ -332,7 +361,7 @@ function ProductDetail() {
             </div>
           </div>
 
-          {/* Tabs de información adicional */}
+          {/* Tabs */}
           {(especificaciones.length > 0 || atributos.length > 0 || preguntas.length > 0) && (
             <div className="detail-tabs">
               <div className="detail-tabs-header">
@@ -367,8 +396,8 @@ function ProductDetail() {
                   <dl className="detail-specs-list">
                     {especificaciones.map((spec, i) => (
                       <div className="detail-specs-row" key={i}>
-                        <dt>{spec.titulo}</dt>
-                        <dd>{spec.descripcion}</dd>
+                        <dt>{spec.titulo || spec.nombre || `Especificación ${i + 1}`}</dt>
+                        <dd>{spec.descripcion || spec.valor || 'N/A'}</dd>
                       </div>
                     ))}
                   </dl>
@@ -379,8 +408,8 @@ function ProductDetail() {
                     <tbody>
                       {atributos.map((attr, i) => (
                         <tr key={i}>
-                          <th>{attr.nombre}</th>
-                          <td>{attr.valor}</td>
+                          <th>{attr.nombre || `Atributo ${i + 1}`}</th>
+                          <td>{attr.valor || 'N/A'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -395,11 +424,13 @@ function ProductDetail() {
                           className="detail-faq-question"
                           onClick={() => setOpenQuestion(openQuestion === i ? null : i)}
                         >
-                          {q.textoPregunta || q.pregunta}
+                          {q.pregunta || q.textoPregunta || `Pregunta ${i + 1}`}
                           <span className="detail-faq-toggle">{openQuestion === i ? '−' : '+'}</span>
                         </button>
                         {openQuestion === i && (
-                          <p className="detail-faq-answer">{q.textoRespuesta || q.respuesta}</p>
+                          <p className="detail-faq-answer">
+                            {q.respuesta || q.textoRespuesta || 'Sin respuesta disponible'}
+                          </p>
                         )}
                       </div>
                     ))}
@@ -408,10 +439,34 @@ function ProductDetail() {
               </div>
             </div>
           )}
+
+          {/* Productos relacionados */}
+          {relatedProducts.length > 0 && (
+            <div className="detail-related-products">
+              <h3>🛒 Productos relacionados</h3>
+              <div className="detail-related-grid">
+                {relatedProducts.slice(0, 4).map((relProduct) => (
+                  <Link 
+                    key={relProduct.id} 
+                    to={`/productos/${createSlug(relProduct.nombre)}/${relProduct.id}`}
+                    className="detail-related-card"
+                  >
+                    <img 
+                      src={relProduct.imagenes?.[0]?.url || '/images/product-placeholder.webp'} 
+                      alt={relProduct.nombre}
+                      onError={(e) => { e.target.src = '/images/product-placeholder.webp'; }}
+                    />
+                    <span className="detail-related-name">{relProduct.nombre}</span>
+                    <span className="detail-related-price">{formatPrice(relProduct.precio)}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* 👈 MODAL DE COMPARTIR */}
+      {/* Share Modal */}
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={closeShareModal}

@@ -1,0 +1,147 @@
+/* ===== SPINNER BÁSICO ===== */
+.spinner-container {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== SPINNER RING (para el dashboard) ===== */
+.spinner-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.spinner-ring .ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  animation: ringSpin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.spinner-ring .ring:nth-child(1) {
+  border-top-color: #d6791b;
+  animation-delay: -0.45s;
+}
+
+.spinner-ring .ring:nth-child(2) {
+  border-right-color: #8b5cf6;
+  animation-delay: -0.3s;
+}
+
+.spinner-ring .ring:nth-child(3) {
+  border-bottom-color: #3b82f6;
+  animation-delay: -0.15s;
+}
+
+.spinner-ring .ring:nth-child(4) {
+  border-left-color: #10b981;
+  animation-delay: 0s;
+}
+
+@keyframes ringSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== PUNTOS PULSANTES ===== */
+.spinner-dots {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.spinner-dots .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.spinner-dots .dot:nth-child(1) {
+  animation-delay: -0.32s;
+  background: #d6791b;
+}
+
+.spinner-dots .dot:nth-child(2) {
+  animation-delay: -0.16s;
+  background: #8b5cf6;
+}
+
+.spinner-dots .dot:nth-child(3) {
+  animation-delay: 0s;
+  background: #3b82f6;
+}
+
+.spinner-dots .dot:nth-child(4) {
+  animation-delay: 0.16s;
+  background: #10b981;
+}
+
+.spinner-dots .dot:nth-child(5) {
+  animation-delay: 0.32s;
+  background: #f59e0b;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.2;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== TEXTO DE CARGA ===== */
+.loading-text {
+  color: #94a3b8;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  animation: textPulse 1.5s ease-in-out infinite;
+}
+
+.loading-text .dots {
+  display: inline-block;
+  animation: dotsAnimation 1.5s steps(4) infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes dotsAnimation {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+}

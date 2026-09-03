@@ -1,48 +1,108 @@
-// C:\xampp\htdocs\FrontComputerChip\src\pages\Admin\AdminLogin.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
 import CatLogo from '../../components/Admin/CatLogo';
 import '../../styles/admin/AdminLogin.css';
 
+// Constantes para el formulario
+const INITIAL_CREDENTIALS = {
+  usuario: '',
+  password: ''
+};
+
 const AdminLogin = () => {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAdmin();
+  const { 
+    login, 
+    isAuthenticated, 
+    loading: authLoading, 
+    error: authError,
+    clearError 
+  } = useAdmin();
+
+  // Estado local del formulario
+  const [credentials, setCredentials] = useState(INITIAL_CREDENTIALS);
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirigir si ya está autenticado
-  React.useEffect(() => {
-    if (isAuthenticated) {
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
       navigate('/admin/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  // Sincronizar errores del contexto con el estado local
+  useEffect(() => {
+    if (authError) {
+      setFormError(authError);
+    }
+  }, [authError]);
 
-    // Simular validación
-    setTimeout(() => {
-      // Credenciales de prueba
-      if (credentials.email === 'admin@computerchip.com' && credentials.password === 'admin123') {
-        login({ 
-          email: credentials.email, 
-          role: 'admin',
-          name: 'Administrador'
-        });
-        navigate('/admin/dashboard');
-      } else {
-        setError('Credenciales incorrectas. Usa: admin@computerchip.com / admin123');
-      }
-      setLoading(false);
-    }, 800);
+  /**
+   * Maneja el cambio en los campos del formulario
+   */
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [id]: value
+    }));
+    
+    // Limpiar errores al escribir
+    if (formError) {
+      setFormError('');
+      clearError();
+    }
   };
+
+  /**
+   * Maneja el envío del formulario
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validación básica
+    if (!credentials.usuario.trim() || !credentials.password.trim()) {
+      setFormError('Por favor, complete todos los campos');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setFormError('');
+      clearError();
+
+      const result = await login(credentials.usuario, credentials.password);
+      
+      if (result.success) {
+        // El useEffect se encargará de la redirección
+        setCredentials(INITIAL_CREDENTIALS);
+      } else {
+        setFormError(result.error || 'Credenciales incorrectas');
+      }
+    } catch (error) {
+      setFormError('Error al conectar con el servidor');
+      console.error('Error en login:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <div className="admin-login-container">
+        <div className="admin-login-card">
+          <div className="login-header">
+            <CatLogo size={100} className="login-cat-logo" />
+            <h1>Computer Chip</h1>
+            <p>Cargando...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-login-container">
@@ -53,17 +113,19 @@ const AdminLogin = () => {
           <p>Panel de Administración</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
-            <label htmlFor="email">Correo Electrónico</label>
+            <label htmlFor="usuario">Usuario</label>
             <input
-              type="email"
-              id="email"
-              value={credentials.email}
-              onChange={(e) => setCredentials({...credentials, email: e.target.value})}
-              placeholder="admin@computerchip.com"
+              type="text"
+              id="usuario"
+              value={credentials.usuario}
+              onChange={handleChange}
+              placeholder="Ingrese su usuario o email"
               required
+              disabled={isSubmitting}
               className="login-input"
+              autoComplete="username"
             />
           </div>
 
@@ -73,25 +135,36 @@ const AdminLogin = () => {
               type="password"
               id="password"
               value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-              placeholder="••••••••"
+              onChange={handleChange}
+              placeholder="Ingrese su contraseña"
               required
+              disabled={isSubmitting}
               className="login-input"
+              autoComplete="current-password"
+              minLength={6}
             />
           </div>
 
-          {error && <div className="login-error">{error}</div>}
+          {formError && (
+            <div className="login-error" role="alert">
+              {formError}
+            </div>
+          )}
 
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          <button 
+            type="submit" 
+            className="login-button" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="spinner" aria-hidden="true"></span>
+                Iniciando sesión...
+              </>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </button>
-
-          <div className="login-footer">
-            <span>🐱 ¡Bienvenido, humano!</span>
-            <span style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
-              Credenciales: admin@computerchip.com / admin123
-            </span>
-          </div>
         </form>
       </div>
     </div>

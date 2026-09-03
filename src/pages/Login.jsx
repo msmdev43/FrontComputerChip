@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import logoAbierto from '../assets/LogoComputerChip.png';
 import logoCerrado from '../assets/LogoComputerChipOjosCerrados.png';
-import Footer from '../components/Footer';
 import '../styles/Login.css';
 
 function Login() {

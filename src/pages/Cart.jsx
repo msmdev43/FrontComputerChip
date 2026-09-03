@@ -2,7 +2,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import Footer from '../components/Footer';
 import carritoBlanco from '../assets/CarritoEmojiBlanco.png';
 import carritoNegro from '../assets/CarritoEmojiNegro.png';
 import '../styles/Cart.css';

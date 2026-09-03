@@ -1,4 +1,3 @@
-import Footer from '../components/Footer'
 import '../styles/Contacto.css'
 
 function Contacto() {

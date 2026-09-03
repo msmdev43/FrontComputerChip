@@ -1,117 +1,245 @@
-// C:\xampp\htdocs\FrontComputerChip\src\pages\Admin\AdminDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAdmin } from '../../context/AdminContext';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import AdminStats from '../../components/Admin/AdminStats';
-import { SAMPLE_PRODUCTS } from '../../data/sampleProducts';
+import clienteAxios from '../../config/axiosClient';
+import { ENDPOINTS } from '../../config/config';
 import '../../styles/admin/AdminDashboard.css';
+import '../../styles/Spinner.css'; // Importar el spinner global
 
 const AdminDashboard = () => {
+  const { user } = useAdmin();
   const [stats, setStats] = useState({
-    products: 0,
-    orders: 0,
-    users: 0,
-    revenue: 0
+    totalPedidos: 0,
+    pedidosHoy: 0,
+    pedidosPendientes: 0,
+    productosPedidos: 0,
+    totalUsuarios: 0,
+    nuevosUsuariosMes: 0,
+    usuariosGoogle: 0,
+    totalProductos: 0,
+    productosSinStock: 0,
+    totalCategorias: 0,
+    productosConCategoria: 0,
+    ventasTotales: 0,
+    ventasMes: 0,
+    ventasSemana: 0,
+    promedioVenta: 0,
+    maxVenta: 0,
+    ofertasActivas: 0,
+    descuentoMaximo: 0
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const loadDashboardData = () => {
-      setLoading(true);
-      setTimeout(() => {
-        // Calcular estadísticas
-        const activeProducts = SAMPLE_PRODUCTS.filter(p => p.deletedAt === null);
-        const totalProducts = activeProducts.length;
-        const totalRevenue = activeProducts.reduce((sum, p) => sum + p.precio, 0);
-        
-        // Generar pedidos recientes de ejemplo
-        const statuses = ['pendiente', 'confirmado', 'enviado', 'entregado'];
-        const customers = ['Juan Pérez', 'María García', 'Carlos López', 'Ana Martínez'];
-        
-        const sampleOrders = activeProducts.slice(0, 5).map((product, index) => ({
-          idpedidos: index + 1,
-          usuario: { nombreCompleto: customers[index % customers.length] },
-          total: product.precio * (Math.floor(Math.random() * 2) + 1),
-          estado: statuses[index % statuses.length]
-        }));
-
-        setStats({
-          products: totalProducts,
-          orders: Math.floor(Math.random() * 100) + 50,
-          users: Math.floor(Math.random() * 200) + 100,
-          revenue: totalRevenue
-        });
-        
-        setRecentOrders(sampleOrders);
-        setLoading(false);
-      }, 500);
-    };
-    loadDashboardData();
-  }, []);
-
-  const formatPrice = (price) => {
+  /**
+   * Formatea un precio en moneda chilena
+   */
+  const formatPrice = useCallback((price) => {
+    if (!price && price !== 0) return '$0';
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(price);
-  };
+  }, []);
 
-  const getStatusColor = (status) => {
-    const colors = {
+  /**
+   * Obtiene el color del estado del pedido
+   */
+  const getStatusColor = useCallback((status) => {
+    const statusMap = {
+      'Pendiente': 'status-pending',
       'pendiente': 'status-pending',
+      'Confirmado': 'status-confirmed',
       'confirmado': 'status-confirmed',
+      'Enviado': 'status-shipped',
       'enviado': 'status-shipped',
-      'entregado': 'status-completed'
+      'Entregado': 'status-completed',
+      'entregado': 'status-completed',
+      'Cancelado': 'status-cancelled',
+      'cancelado': 'status-cancelled'
     };
-    return colors[status] || 'status-pending';
-  };
+    return statusMap[status] || 'status-pending';
+  }, []);
 
-  const getStatusLabel = (status) => {
-    const labels = {
+  /**
+   * Obtiene el nombre del estado del pedido
+   */
+  const getStatusLabel = useCallback((status) => {
+    const statusMap = {
+      'Pendiente': 'Pendiente',
       'pendiente': 'Pendiente',
+      'Confirmado': 'Confirmado',
       'confirmado': 'Confirmado',
+      'Enviado': 'Enviado',
       'enviado': 'Enviado',
-      'entregado': 'Entregado'
+      'Entregado': 'Entregado',
+      'entregado': 'Entregado',
+      'Cancelado': 'Cancelado',
+      'cancelado': 'Cancelado'
     };
-    return labels[status] || status;
+    return statusMap[status] || status || 'Pendiente';
+  }, []);
+
+  /**
+   * Carga los datos del dashboard
+   */
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. Obtener estadísticas del dashboard
+      const response = await clienteAxios.get(ENDPOINTS.admin.dashboard.stats);
+      
+      if (response.data) {
+        setStats(prev => ({
+          ...prev,
+          ...response.data
+        }));
+      }
+
+      // 2. Obtener pedidos recientes
+      try {
+        const ordersResponse = await clienteAxios.get(ENDPOINTS.pedidos.recientes);
+        if (ordersResponse.data && Array.isArray(ordersResponse.data)) {
+          setRecentOrders(ordersResponse.data.slice(0, 5));
+        }
+      } catch (orderError) {
+        console.warn('No se pudieron cargar pedidos recientes:', orderError);
+        // No es crítico, el dashboard sigue funcionando
+      }
+
+    } catch (err) {
+      console.error('Error cargando dashboard:', err);
+      
+      // Manejar diferentes tipos de errores
+      if (err.response) {
+        // Error con respuesta del servidor
+        const status = err.response.status;
+        const message = err.response.data?.Error || err.response.data?.message;
+        
+        if (status === 401) {
+          setError('Sesión expirada. Por favor, inicie sesión nuevamente.');
+        } else if (status === 403) {
+          setError('No tiene permisos para ver el dashboard.');
+        } else if (status === 500) {
+          setError('Error interno del servidor. Intente más tarde.');
+        } else {
+          setError(message || `Error ${status}: No se pudieron cargar los datos`);
+        }
+      } else if (err.request) {
+        // Error de red
+        setError('Error de conexión. Verifique su conexión a Internet.');
+      } else {
+        // Error inesperado
+        setError('Error inesperado al cargar los datos.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  // Preparar datos para AdminStats
+  const statsForDisplay = {
+    products: stats.totalProductos || 0,
+    orders: stats.totalPedidos || 0,
+    users: stats.totalUsuarios || 0,
+    revenue: stats.ventasTotales || 0
   };
 
+  // ============================================
+  // RENDER: LOADING
+  // ============================================
   if (loading) {
     return (
       <div className="admin-dashboard">
         <AdminSidebar />
         <div className="admin-main">
           <div className="loading-container">
-           <div className="loading-spinner-modern">
-            <div className="spinner-dots">
-              <div className="dot"></div>
-              <div className="dot"></div>
-              <div className="dot"></div>
-              <div className="dot"></div>
-              <div className="dot"></div>
+            <div className="loading-spinner-modern">
+              <div className="spinner-ring">
+                <div className="ring"></div>
+                <div className="ring"></div>
+                <div className="ring"></div>
+                <div className="ring"></div>
+              </div>
+              <div className="loading-text">
+                Cargando panel de control<span className="dots">...</span>
+              </div>
             </div>
-            <div className="loading-text">
-              Cargando datos<span className="dots">...</span>
-            </div>
-          </div>
           </div>
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // RENDER: ERROR
+  // ============================================
+  if (error) {
+    return (
+      <div className="admin-dashboard">
+        <AdminSidebar />
+        <div className="admin-main">
+          <AdminHeader 
+            title="Panel de Control" 
+            subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
+          />
+          <div className="admin-content">
+            <div className="error-message">
+              <div className="error-icon">⚠️</div>
+              <p>{error}</p>
+              <div className="error-actions">
+                <button 
+                  className="btn-primary" 
+                  onClick={loadDashboardData}
+                >
+                  🔄 Reintentar
+                </button>
+                {error.includes('Sesión expirada') && (
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => window.location.href = '/admin/login'}
+                  >
+                    🔑 Ir al Login
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // RENDER: DASHBOARD
+  // ============================================
   return (
     <div className="admin-dashboard">
       <AdminSidebar />
       <div className="admin-main">
-        <AdminHeader title="Panel de Control" />
+        <AdminHeader 
+          title="Panel de Control" 
+          subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
+        />
         <div className="admin-content">
-          <AdminStats stats={stats} />
+          {/* Stats principales */}
+          <AdminStats stats={statsForDisplay} />
           
+          {/* Grid de dashboard */}
           <div className="dashboard-grid">
+            {/* Pedidos Recientes */}
             <div className="dashboard-card recent-orders">
               <h3>📦 Pedidos Recientes</h3>
               <div className="order-list">
@@ -119,13 +247,13 @@ const AdminDashboard = () => {
                   <p className="no-data">No hay pedidos recientes</p>
                 ) : (
                   recentOrders.map(order => (
-                    <div key={order.idpedidos} className="order-item">
-                      <span className="order-id">#{order.idpedidos}</span>
+                    <div key={order.idpedidos || order.id} className="order-item">
+                      <span className="order-id">#{order.idpedidos || order.id}</span>
                       <span className="order-customer">
-                        {order.usuario?.nombreCompleto || 'Cliente'}
+                        {order.usuario?.nombreCompleto || order.usuario?.nombre || 'Cliente'}
                       </span>
                       <span className="order-amount">
-                        {formatPrice(order.total)}
+                        {formatPrice(order.total || 0)}
                       </span>
                       <span className={`order-status ${getStatusColor(order.estado)}`}>
                         {getStatusLabel(order.estado)}
@@ -136,22 +264,75 @@ const AdminDashboard = () => {
               </div>
             </div>
 
+            {/* Acciones Rápidas */}
             <div className="dashboard-card quick-actions">
               <h3>⚡ Acciones Rápidas</h3>
               <div className="action-grid">
-                <button className="action-btn" onClick={() => window.location.href = '/admin/products'}>
+                <button 
+                  className="action-btn" 
+                  onClick={() => window.location.href = '/admin/products'}
+                >
                   ➕ Agregar Producto
                 </button>
-                <button className="action-btn" onClick={() => window.location.href = '/admin/orders'}>
+                <button 
+                  className="action-btn" 
+                  onClick={() => window.location.href = '/admin/orders'}
+                >
                   📊 Ver Reportes
                 </button>
-                <button className="action-btn" onClick={() => window.location.href = '/admin/users'}>
+                <button 
+                  className="action-btn" 
+                  onClick={() => window.location.href = '/admin/users'}
+                >
                   👥 Gestionar Usuarios
                 </button>
-                <button className="action-btn" onClick={() => window.location.href = '/admin/settings'}>
+                <button 
+                  className="action-btn" 
+                  onClick={() => window.location.href = '/admin/settings'}
+                >
                   ⚙️ Configuración
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Stats Extendidos */}
+          <div className="dashboard-stats-extended">
+            <div className="stat-card-mini">
+              <span className="stat-label">📋 Pedidos Hoy</span>
+              <span className="stat-value">{stats.pedidosHoy || 0}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">⏳ Pendientes</span>
+              <span className="stat-value">{stats.pedidosPendientes || 0}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">🆕 Nuevos Usuarios (Mes)</span>
+              <span className="stat-value">{stats.nuevosUsuariosMes || 0}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">⚠️ Sin Stock</span>
+              <span className="stat-value">{stats.productosSinStock || 0}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">🏷️ Ofertas Activas</span>
+              <span className="stat-value">{stats.ofertasActivas || 0}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">📈 Ventas Mes</span>
+              <span className="stat-value">{formatPrice(stats.ventasMes || 0)}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">📊 Promedio Venta</span>
+              <span className="stat-value">{formatPrice(stats.promedioVenta || 0)}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">🏆 Máxima Venta</span>
+              <span className="stat-value">{formatPrice(stats.maxVenta || 0)}</span>
+            </div>
+            <div className="stat-card-mini">
+              <span className="stat-label">🔻 Descuento Máximo</span>
+              <span className="stat-value">{stats.descuentoMaximo || 0}%</span>
             </div>
           </div>
         </div>

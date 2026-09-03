@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
+import { adminAuthService } from '../services/adminAuthService';
 
 const AdminContext = createContext();
 
@@ -6,36 +7,91 @@ export const AdminProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const authData = localStorage.getItem('adminAuth');
-    if (authData) {
-      const parsed = JSON.parse(authData);
-      if (parsed.isAuthenticated) {
-        setIsAuthenticated(true);
-        setUser(parsed.user);
+    const initializeAuth = async () => {
+      try {
+        setLoading(true);
+        
+        if (adminAuthService.isAuthenticated()) {
+          const result = await adminAuthService.verifyToken();
+          
+          if (result.isValid) {
+            setIsAuthenticated(true);
+            setUser(result.user);
+          } else {
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error inicializando autenticación:', error);
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = (userData) => {
-    setIsAuthenticated(true);
-    setUser(userData);
-    localStorage.setItem('adminAuth', JSON.stringify({
-      isAuthenticated: true,
-      user: userData
-    }));
-  };
+  const login = useCallback(async (usuario, password) => {
+    try {
+      setError(null);
+      setLoading(true);
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    localStorage.removeItem('adminAuth');
-  };
+      const result = await adminAuthService.login(usuario, password);
+
+      if (result.success) {
+        setIsAuthenticated(true);
+        setUser(result.user);
+        return { success: true, user: result.user };
+      } else {
+        setError(result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = error.message || 'Error inesperado al iniciar sesión';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await adminAuthService.logout();
+    } catch (error) {
+      console.error('Error en logout:', error);
+    } finally {
+      setIsAuthenticated(false);
+      setUser(null);
+      setError(null);
+    }
+  }, []);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const value = useMemo(() => ({
+    isAuthenticated,
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    clearError
+  }), [isAuthenticated, user, loading, error, login, logout, clearError]);
 
   return (
-    <AdminContext.Provider value={{ isAuthenticated, user, loading, login, logout }}>
+    <AdminContext.Provider value={value}>
       {children}
     </AdminContext.Provider>
   );
@@ -43,8 +99,10 @@ export const AdminProvider = ({ children }) => {
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
+  
   if (!context) {
     throw new Error('useAdmin debe ser usado dentro de un AdminProvider');
   }
+  
   return context;
 };

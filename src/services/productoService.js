@@ -39,7 +39,7 @@ export const productoService = {
     },
 
     getOnSale: async () => {
-        const { data } = await clienteAxios.get(ENDPOINTS.productos.ofertas);
+        const { data } = await clienteAxios.get(ENDPOINTS.productos.oferta);
         return data;
     },
 
@@ -82,7 +82,7 @@ export const productoService = {
     },
 
     updateStock: async (id, stock) => {
-        const { data } = await clienteAxios.patch(ENDPOINTS.productos.stock(id), stock);
+        const { data } = await clienteAxios.patch(ENDPOINTS.productos.actualizarStock(id), stock);
         return data;
     },
 

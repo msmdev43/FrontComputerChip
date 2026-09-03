@@ -1,18 +1,77 @@
-# React + Vite
+# 🖥️ Computer Chip - Panel de Administración
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![React](https://img.shields.io/badge/React-18.3-blue?logo=react)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.0-purple?logo=vite)](https://vitejs.dev/)
+[![Axios](https://img.shields.io/badge/Axios-1.7-cyan?logo=axios)](https://axios-http.com/)
 
-Currently, two official plugins are available:
+> Panel de administración para Computer Chip - Casa de computación
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🏪 Sobre el Proyecto
 
-## React Compiler
+**Computer Chip** es una casa de computación ubicada en **Calle 23 1099, Miramar, Buenos Aires**, dedicada a:
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- 🔧 **Venta y reparación** de PC, Notebooks, Consolas y Celulares
+- 🛠️ **Servicio técnico** especializado en electrónica
+- 📱 **Reparación** de teléfonos, PC y consolas
 
-Note: This will impact Vite dev & build performances.
+### 📱 Redes Sociales
+- **Instagram:** [@computer_ch1p](https://instagram.com/computer_ch1p)
+- **Kick:** [computer-chip](https://kick.com/computer-chip)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Tecnologías Utilizadas
+
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| React | 18.3 | Framework UI |
+| Vite | 8.0 | Build tool |
+| React Router DOM | 7.19 | Enrutamiento |
+| Axios | 1.7 | Cliente HTTP |
+| React Compiler | - | Optimización |
+
+---
+
+## 📋 Funcionalidades Implementadas
+
+### ✅ Módulos del Panel Admin
+
+| Módulo | Descripción | Estado |
+|--------|-------------|--------|
+| 🔐 **Login** | Autenticación con JWT | ✅ Completado |
+| 📊 **Dashboard** | Estadísticas en tiempo real | ✅ Completado |
+| 📦 **Productos** | CRUD de productos | ✅ Completado |
+| 📋 **Pedidos** | Gestión y estados | ✅ Completado |
+| 👥 **Usuarios** | Gestión de usuarios | ⏳ Pendiente |
+| ⚙️ **Configuración** | Ajustes del sistema | ⏳ Pendiente |
+
+### 🛠️ Backend
+- **API REST** con autenticación JWT
+- **Endpoints:** Admin, Auth, Productos, Pedidos, Categorías, Marcas
+
+---
+
+## 📦 Instalación
+
+### Prerrequisitos
+- Node.js (v18+)
+- npm o yarn
+
+### Pasos de instalación
+
+```bash
+# 1. Clonar el repositorio
+git clone
+
+# 2. Entrar al directorio
+cd frontcomputerchip
+
+# 3. Instalar dependencias
+npm install
+
+# 4. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con la URL de tu API
+
+# 5. Iniciar en modo desarrollo
+npm run dev
