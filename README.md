@@ -4,7 +4,7 @@
 [![Vite](https://img.shields.io/badge/Vite-8.0-purple?logo=vite)](https://vitejs.dev/)
 [![Axios](https://img.shields.io/badge/Axios-1.7-cyan?logo=axios)](https://axios-http.com/)
 
-> Panel de administración para Computer Chip - Casa de computación
+> Computer Chip - Casa de computación
 
 ## 🏪 Sobre el Proyecto
 
@@ -38,10 +38,10 @@
 
 | Módulo | Descripción | Estado |
 |--------|-------------|--------|
-| 🔐 **Login** | Autenticación con JWT | ✅ Completado |
-| 📊 **Dashboard** | Estadísticas en tiempo real | ✅ Completado |
-| 📦 **Productos** | CRUD de productos | ✅ Completado |
-| 📋 **Pedidos** | Gestión y estados | ✅ Completado |
+| 🔐 **Login** | Autenticación con JWT | ⏳ Pendiente |
+| 📊 **Dashboard** | Estadísticas en tiempo real | ⏳ Pendiente |
+| 📦 **Productos** | CRUD de productos | ⏳ Pendiente |
+| 📋 **Pedidos** | Gestión y estados | ⏳ Pendiente |
 | 👥 **Usuarios** | Gestión de usuarios | ⏳ Pendiente |
 | ⚙️ **Configuración** | Ajustes del sistema | ⏳ Pendiente |
 
@@ -55,7 +55,7 @@
 
 ### Prerrequisitos
 - Node.js (v18+)
-- npm o yarn
+- npm
 
 ### Pasos de instalación
 
