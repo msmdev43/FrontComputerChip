@@ -50,14 +50,6 @@ const AdminHeader = ({ title, subtitle }) => {
             <span className="user-role">Administrador</span>
           </div>
         </div>
-        <button 
-          className="header-logout-btn" 
-          onClick={handleLogout}
-          title="Cerrar sesión"
-        >
-          <span className="logout-icon">🚪</span>
-          <span className="logout-text">Salir</span>
-        </button>
       </div>
     </header>
   );

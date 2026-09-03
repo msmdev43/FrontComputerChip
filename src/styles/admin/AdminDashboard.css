@@ -1,9 +1,196 @@
-/* ===== STATS EXTENDED ===== */
+/* ===== VARIABLES GLOBALES ADMIN ===== */
+:root {
+  --admin-bg: #0f172a;
+  --admin-card-bg: #1e293b;
+  --admin-border: #334155;
+  --admin-primary: #d6791b;
+  --admin-primary-hover: #b86211;
+  --admin-text: #f1f5f9;
+  --admin-text-secondary: #94a3b8;
+  --admin-danger: #ef4444;
+  --admin-danger-bg: rgba(239, 68, 68, 0.1);
+  --admin-success: #10b981;
+  --admin-success-bg: rgba(16, 185, 129, 0.1);
+  --admin-warning: #f59e0b;
+  --admin-warning-bg: rgba(245, 158, 11, 0.1);
+}
+
+/* ===== ESTRUCTURA Y LAYOUT GENERAL ===== */
+.admin-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 260px; /* Offset requerido por el sidebar fijo */
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: margin-left 0.3s ease;
+}
+
+.admin-content {
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ===== CARDS Y GRILLAS DEL DASHBOARD ===== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.dashboard-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== TABLA / LISTA DE PEDIDOS RECIENTES ===== */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 80px 1fr 110px 110px;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.order-item:hover {
+  border-color: var(--admin-primary);
+  transform: translateX(4px);
+}
+
+.order-id {
+  font-weight: 700;
+  color: var(--admin-primary);
+  font-size: 14px;
+}
+
+.order-customer {
+  color: var(--admin-text);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-amount {
+  font-weight: 600;
+  color: var(--admin-text);
+  font-size: 14px;
+  text-align: right;
+  padding-right: 12px;
+}
+
+/* Estados de Pedidos */
+.order-status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+}
+
+.status-pending {
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-confirmed, .status-shipped {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-completed {
+  background: var(--admin-success-bg);
+  color: var(--admin-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-cancelled {
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.no-data {
+  text-align: center;
+  color: var(--admin-text-secondary);
+  padding: 32px;
+  font-style: italic;
+}
+
+/* ===== ACCIONES RÁPIDAS ===== */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.action-btn {
+  background: #0f172a;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.action-btn:hover {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(214, 121, 27, 0.3);
+}
+
+/* ===== STATS EXTENDIDOS (MÉTRICAS SECUNDARIAS) ===== */
 .dashboard-stats-extended {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 16px;
-  margin-top: 24px;
 }
 
 .stat-card-mini {
@@ -13,14 +200,14 @@
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
 .stat-card-mini:hover {
-  border-color: #d6791b;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--admin-primary);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card-mini .stat-label {
@@ -30,132 +217,94 @@
 }
 
 .stat-card-mini .stat-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--admin-text);
 }
 
-/* ===== ERROR MESSAGE MEJORADO ===== */
-.error-message {
-  background: var(--admin-danger-bg);
-  color: var(--admin-danger-text);
-  border: 1px solid var(--admin-danger);
-  border-radius: 12px;
-  padding: 32px;
-  text-align: center;
-  margin: 20px 0;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+/* ===== PANTALLA DE CARGA (LOADING) ===== */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
 }
 
-.error-message .error-icon {
+.loading-spinner-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ===== PANTALLA DE ERROR ===== */
+.error-message {
+  background: var(--admin-danger-bg);
+  border: 1px solid var(--admin-danger);
+  border-radius: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+.error-icon {
   font-size: 48px;
   margin-bottom: 12px;
 }
 
-.error-message p {
-  font-size: 16px;
-  margin: 0 0 20px 0;
-  line-height: 1.5;
-}
-
-.error-message .error-actions {
+.error-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
-  flex-wrap: wrap;
+  margin-top: 20px;
 }
 
-.error-message .btn-primary {
-  background: #d6791b;
+.btn-primary {
+  background: var(--admin-primary);
   border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
   color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
 }
 
-.error-message .btn-primary:hover {
-  opacity: 0.85;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(214, 121, 27, 0.3);
-}
-
-.error-message .btn-secondary {
+.btn-secondary {
   background: transparent;
   border: 1px solid var(--admin-border);
-  padding: 10px 24px;
+  color: var(--admin-text);
+  padding: 10px 20px;
   border-radius: 6px;
-  color: var(--admin-text-secondary);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
 }
 
-.error-message .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--admin-text-secondary);
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* ===== RESPONSIVE PARA STATS EXTENDED Y ERROR ===== */
 @media (max-width: 768px) {
-  .dashboard-stats-extended {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
+  .admin-main {
+    margin-left: 0;
   }
 
-  .stat-card-mini {
-    padding: 12px 16px;
-  }
-
-  .stat-card-mini .stat-value {
-    font-size: 18px;
-  }
-
-  .error-message {
-    padding: 20px;
-    margin: 12px;
-    max-width: 100%;
-  }
-
-  .error-message .error-actions {
-    flex-direction: column;
-  }
-
-  .error-message .btn-primary,
-  .error-message .btn-secondary {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard-stats-extended {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .stat-card-mini .stat-label {
-    font-size: 11px;
-  }
-
-  .stat-card-mini .stat-value {
-    font-size: 16px;
-  }
-
-  .error-message {
+  .admin-content {
     padding: 16px;
   }
 
-  .error-message .error-icon {
-    font-size: 36px;
+  .order-item {
+    grid-template-columns: 60px 1fr 90px;
   }
 
-  .error-message p {
-    font-size: 14px;
+  .order-status {
+    display: none; /* Ocultar estado en móviles pequeños */
+  }
+
+  .dashboard-stats-extended {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }

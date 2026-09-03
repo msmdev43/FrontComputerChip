@@ -4,6 +4,7 @@ import { useAdmin } from '../context/AdminContext';
 import AdminLogin from '../pages/Admin/AdminLogin';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import AdminProducts from '../pages/Admin/AdminProducts';
+import AdminCategoriesBrands from '../pages/Admin/AdminCategoriesBrands';
 import AdminOrders from '../pages/Admin/AdminOrders';
 import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminSettings from '../pages/Admin/AdminSettings';
@@ -30,6 +31,11 @@ const AdminRoutes = () => {
       <Route path="/products" element={
         <PrivateRoute>
           <AdminProducts />
+        </PrivateRoute>
+      } />
+      <Route path="/categories-brands" element={
+        <PrivateRoute>
+          <AdminCategoriesBrands />
         </PrivateRoute>
       } />
       <Route path="/orders" element={

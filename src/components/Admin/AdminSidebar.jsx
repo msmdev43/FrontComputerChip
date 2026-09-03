@@ -12,6 +12,7 @@ const AdminSidebar = () => {
   const menuItems = [
     { icon: '📊', label: 'Dashboard', path: '/admin/dashboard' },
     { icon: '🛍️', label: 'Productos', path: '/admin/products' },
+    { icon: '🏷️', label: 'Categorías y Marcas', path: '/admin/categories-brands' },
     { icon: '📦', label: 'Pedidos', path: '/admin/orders' },
     { icon: '👥', label: 'Usuarios', path: '/admin/users' },
     { icon: '⚙️', label: 'Configuración', path: '/admin/settings' },

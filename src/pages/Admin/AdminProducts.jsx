@@ -12,7 +12,7 @@ const INITIAL_FORM_DATA = {
   nombre: '',
   descripcion: '',
   precio: '',
-  stock: '',
+  stock: true,
   garantia: '12 meses',
   marcaId: '',
   categoriaId: '',
@@ -30,7 +30,6 @@ const STATUS_OPTIONS = [
 // COMPONENTE PRINCIPAL
 // ============================================
 const AdminProducts = () => {
-  // ===== STATE =====
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,7 +84,6 @@ const AdminProducts = () => {
   // ===== FILTER PRODUCTS =====
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      // Buscar por nombre o marca
       const brandName = product.marca || product.productosMarcas?.[0]?.marcas?.nombre || '';
       const categoryName = product.categoria || product.categoriasProductos?.[0]?.categorias?.nombre || '';
       
@@ -93,13 +91,11 @@ const AdminProducts = () => {
         product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         brandName.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filtrar por categoría
       const matchCategory = 
         filterCategory === 'all' || 
         categoryName === filterCategory ||
         product.categoriaId === parseInt(filterCategory);
       
-      // Filtrar por estado (activo/inactivo)
       const matchStatus = 
         filterStatus === 'all' ||
         (filterStatus === 'activo' && !product.deletedAt) ||
@@ -142,22 +138,20 @@ const AdminProducts = () => {
         nombre: formData.nombre,
         descripcion: formData.descripcion || '',
         precio: parseFloat(formData.precio),
-        stock: parseInt(formData.stock) || 0,
+        stock: Boolean(formData.stock),
         garantia: formData.garantia || '12 meses',
-        oferta: formData.oferta || false,
-        descuento: formData.descuento || 0,
+        oferta: Boolean(formData.oferta),
+        descuento: formData.descuento ? parseFloat(formData.descuento) : 0,
         categoriaId: formData.categoriaId ? parseInt(formData.categoriaId) : null,
         marcaId: formData.marcaId ? parseInt(formData.marcaId) : null
       };
 
       if (editingProduct) {
-        // Actualizar
         await clienteAxios.put(
           ENDPOINTS.productos.porId(editingProduct.id),
           productData
         );
       } else {
-        // Crear
         await clienteAxios.post(ENDPOINTS.productos.base, productData);
       }
       
@@ -199,9 +193,7 @@ const AdminProducts = () => {
     }).format(price);
   };
 
-  const hasStock = (stock) => {
-    return stock === true || stock > 0;
-  };
+  const hasStock = (stock) => Boolean(stock);
 
   const getCategoryName = (product) => {
     return product.categoria || 
@@ -217,7 +209,6 @@ const AdminProducts = () => {
 
   const isActive = (product) => !product.deletedAt;
 
-  // ===== RENDER =====
   return (
     <div className="admin-dashboard">
       <AdminSidebar />
@@ -225,7 +216,6 @@ const AdminProducts = () => {
         <AdminHeader title="Gestión de Productos" />
         <div className="admin-content">
           <div className="admin-page-content">
-            {/* Header */}
             <div className="page-header">
               <h2>📦 Lista de Productos</h2>
               <button 
@@ -236,7 +226,6 @@ const AdminProducts = () => {
               </button>
             </div>
 
-            {/* Search Bar */}
             <div className="search-bar">
               <div className="search-input-wrapper">
                 <span className="search-icon">🔍</span>
@@ -285,7 +274,6 @@ const AdminProducts = () => {
               </div>
             </div>
             
-            {/* Error */}
             {error && (
               <div className="error-message">
                 <p>⚠️ {error}</p>
@@ -299,7 +287,6 @@ const AdminProducts = () => {
               </div>
             )}
 
-            {/* Loading */}
             {loading ? (
               <div className="loading-spinner-modern">
                 <div className="spinner-dots">
@@ -315,7 +302,6 @@ const AdminProducts = () => {
               </div>
             ) : (
               <>
-                {/* Table */}
                 <div className="table-container">
                   <table className="admin-table">
                     <thead>
@@ -353,7 +339,7 @@ const AdminProducts = () => {
                             <td className="product-price">{formatPrice(product.precio)}</td>
                             <td>
                               <span className={`stock-badge ${hasStock(product.stock) ? 'stock-yes' : 'stock-no'}`}>
-                                {hasStock(product.stock) ? `✅ ${product.stock}` : '❌ Sin stock'}
+                                {hasStock(product.stock) ? '✅ En Stock' : '❌ Sin Stock'}
                               </span>
                             </td>
                             <td>
@@ -396,7 +382,6 @@ const AdminProducts = () => {
                   </table>
                 </div>
                 
-                {/* Footer */}
                 <div className="table-footer">
                   <div className="pagination-info">
                     Mostrando <strong>{filteredProducts.length}</strong> de <strong>{products.length}</strong> productos
@@ -408,7 +393,6 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <ProductModal
           product={editingProduct}
@@ -432,15 +416,19 @@ const AdminProducts = () => {
 const ProductModal = ({ product, onClose, onSave, categories, brands, submitting }) => {
   const [formData, setFormData] = useState(() => {
     if (product) {
+      const rawPrice = typeof product.precio === 'string' 
+        ? product.precio.replace(/[^0-9.]/g, '') 
+        : product.precio;
+
       return {
         nombre: product.nombre || '',
         descripcion: product.descripcion || '',
-        precio: product.precio || '',
-        stock: product.stock || '',
+        precio: rawPrice || '',
+        stock: typeof product.stock === 'boolean' ? product.stock : Boolean(product.stock),
         garantia: product.garantia || '12 meses',
         marcaId: product.marcaId || product.marca?.id || '',
         categoriaId: product.categoriaId || product.categoria?.id || '',
-        oferta: product.oferta || false,
+        oferta: Boolean(product.oferta),
         descuento: product.descuento || 0
       };
     }
@@ -450,7 +438,6 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validaciones
     if (!formData.nombre.trim()) {
       alert('El nombre del producto es obligatorio');
       return;
@@ -503,31 +490,33 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
           </div>
           
           <div className="form-row">
+          <div className="form-group">
+            <label>Precio * (CLP)</label>
+            <input
+              type="text"
+              name="precio"
+              value={formData.precio}
+              onChange={(e) => {
+                // Permite al usuario escribir solo dígitos
+                const rawValue = e.target.value.replace(/\D/g, '');
+                setFormData(prev => ({ ...prev, precio: rawValue }));
+              }}
+              required
+              placeholder="Ej: 199999"
+              disabled={submitting}
+            />
+          </div>
             <div className="form-group">
-              <label>Precio * (CLP)</label>
-              <input
-                type="number"
-                name="precio"
-                value={formData.precio}
-                onChange={handleChange}
-                required
-                placeholder="Ej: 72960"
-                min="0"
-                step="100"
-                disabled={submitting}
-              />
-            </div>
-            <div className="form-group">
-              <label>Stock</label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleChange}
-                placeholder="0"
-                min="0"
-                disabled={submitting}
-              />
+              <label className="checkbox-label" style={{ marginTop: '28px' }}>
+                <input
+                  type="checkbox"
+                  name="stock"
+                  checked={Boolean(formData.stock)}
+                  onChange={handleChange}
+                  disabled={submitting}
+                />
+                ¿En Stock / Disponible?
+              </label>
             </div>
           </div>
 
@@ -586,7 +575,7 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
                 <input
                   type="checkbox"
                   name="oferta"
-                  checked={formData.oferta}
+                  checked={Boolean(formData.oferta)}
                   onChange={handleChange}
                   disabled={submitting}
                 />
