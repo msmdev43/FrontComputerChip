@@ -1,0 +1,91 @@
+/* src/styles/admin/AdminSupport.css */
+.admin-support-container {
+  padding: 20px;
+}
+
+.ticket-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+.ticket-card:hover {
+  border-color: #d6791b;
+}
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ticket-id {
+  color: #d6791b;
+  font-weight: 700;
+  font-size: 14px;
+}
+.ticket-date {
+  color: #94a3b8;
+  font-size: 13px;
+}
+.ticket-customer {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.ticket-customer span {
+  color: #f1f5f9;
+  font-size: 14px;
+}
+.ticket-customer .email {
+  color: #94a3b8;
+}
+.ticket-message {
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.6;
+  background: #0f172a;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.ticket-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #334155;
+}
+.ticket-detail-info p {
+  color: #f1f5f9;
+  margin: 8px 0;
+}
+.ticket-detail-message {
+  margin-top: 16px;
+}
+.ticket-detail-message h4 {
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.ticket-detail-message p {
+  color: #f1f5f9;
+  background: #0f172a;
+  padding: 16px;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+@media (max-width: 768px) {
+  .ticket-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ticket-customer {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

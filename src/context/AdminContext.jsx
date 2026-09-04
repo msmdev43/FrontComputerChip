@@ -1,3 +1,4 @@
+// src/context/AdminContext.jsx
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { adminAuthService } from '../services/adminAuthService';
 
@@ -14,6 +15,7 @@ export const AdminProvider = ({ children }) => {
       try {
         setLoading(true);
         
+        // Verificar si hay token almacenado usando el servicio
         if (adminAuthService.isAuthenticated()) {
           const result = await adminAuthService.verifyToken();
           
@@ -21,6 +23,8 @@ export const AdminProvider = ({ children }) => {
             setIsAuthenticated(true);
             setUser(result.user);
           } else {
+            // Token inválido, limpiar
+            adminAuthService.clearAuthData();
             setIsAuthenticated(false);
             setUser(null);
           }
@@ -30,6 +34,7 @@ export const AdminProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Error inicializando autenticación:', error);
+        adminAuthService.clearAuthData();
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -73,6 +78,7 @@ export const AdminProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
       setError(null);
+      adminAuthService.clearAuthData();
     }
   }, []);
 
@@ -106,3 +112,5 @@ export const useAdmin = () => {
   
   return context;
 };
+
+export default AdminContext;

@@ -1,0 +1,37 @@
+/* src/styles/admin/AdminQuestions.css */
+
+.admin-questions-container {
+  padding: 20px;
+}
+
+/* ===== QUESTION CARD ===== */
+.question-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.question-text {
+  color: #f1f5f9;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.question-answer {
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  background: #0f172a;
+  border-radius: 8px;
+  margin: 8px 0 12px 0;
+}
+
+.question-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

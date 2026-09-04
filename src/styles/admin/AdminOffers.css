@@ -1,0 +1,89 @@
+/* src/styles/admin/AdminOffers.css */
+
+.admin-offers-container {
+  padding: 20px;
+}
+
+/* ===== GRID DE OFERTAS ===== */
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.offer-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.offer-card:hover {
+  border-color: #d6791b;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.offer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.offer-header h3 {
+  color: #f1f5f9;
+  font-size: 16px;
+  margin: 0;
+}
+
+.offer-discount {
+  background: #d6791b;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.offer-subtitle {
+  color: #94a3b8;
+  font-size: 14px;
+  margin: 8px 0 16px 0;
+}
+
+.offer-prices {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.original-price {
+  color: #94a3b8;
+  text-decoration: line-through;
+  font-size: 14px;
+}
+
+.offer-price {
+  color: #6ee7b7;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.offer-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid #334155;
+  padding-top: 16px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .offers-grid {
+    grid-template-columns: 1fr;
+  }
+}

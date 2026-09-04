@@ -1,3 +1,9 @@
+/* src/styles/Spinner.css */
+
+/* ============================================
+   SPINNER COMPLETO - TODOS LOS ESTILOS
+   ============================================ */
+
 /* ===== SPINNER BÁSICO ===== */
 .spinner-container {
   display: inline-block;
@@ -145,3 +151,38 @@
     content: '...';
   }
 }
+
+/* ===== LOADING CONTAINER (para páginas completas) ===== */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  width: 100%;
+}
+
+.loading-container .spinner-ring {
+  width: 60px;
+  height: 60px;
+}
+
+/* ===== LOADING DOTS (para tablas) ===== */
+.loading-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loading-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.loading-dots .dot:nth-child(1) { animation-delay: -0.32s; background: #d6791b; }
+.loading-dots .dot:nth-child(2) { animation-delay: -0.16s; background: #8b5cf6; }
+.loading-dots .dot:nth-child(3) { animation-delay: 0s; background: #3b82f6; }
+.loading-dots .dot:nth-child(4) { animation-delay: 0.16s; background: #10b981; }

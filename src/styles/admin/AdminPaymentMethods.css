@@ -1,0 +1,26 @@
+/* src/styles/admin/AdminPaymentMethods.css */
+
+.admin-payment-methods-container {
+  padding: 20px;
+}
+
+/* ===== BADGE DE ESTADO ===== */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+.status-inactive {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+

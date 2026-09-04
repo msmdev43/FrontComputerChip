@@ -1,8 +1,12 @@
+// src/pages/Admin/AdminProducts.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
-import clienteAxios from '../../config/axiosClient';
-import { ENDPOINTS } from '../../config/config';
+import { productoService } from '../../services/productoService';
+import { categoriaService } from '../../services/categoriaService';
+import { marcaService } from '../../services/marcaService';
+import { formatPrice } from '../../config/currency';
+import '../../styles/Spinner.css';
 import '../../styles/admin/AdminProducts.css';
 
 // ============================================
@@ -12,12 +16,13 @@ const INITIAL_FORM_DATA = {
   nombre: '',
   descripcion: '',
   precio: '',
+  precioOferta: '',
   stock: true,
   garantia: '12 meses',
-  marcaId: '',
-  categoriaId: '',
-  oferta: false,
-  descuento: 0
+  envioGratis: true,
+  codigoSerie: '',
+  categoriaIds: [],
+  marcaIds: []
 };
 
 const STATUS_OPTIONS = [
@@ -47,8 +52,8 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await clienteAxios.get(ENDPOINTS.productos.base);
-      setProducts(response.data || []);
+      const data = await productoService.getAll();
+      setProducts(data || []);
     } catch (err) {
       console.error('Error al cargar productos:', err);
       setError(err.response?.data?.Error || 'Error al cargar los productos');
@@ -59,8 +64,8 @@ const AdminProducts = () => {
 
   const loadCategories = useCallback(async () => {
     try {
-      const response = await clienteAxios.get(ENDPOINTS.categoria.base);
-      setCategories(response.data || []);
+      const data = await categoriaService.getAll();
+      setCategories(data || []);
     } catch (err) {
       console.error('Error al cargar categorías:', err);
     }
@@ -68,8 +73,8 @@ const AdminProducts = () => {
 
   const loadBrands = useCallback(async () => {
     try {
-      const response = await clienteAxios.get(ENDPOINTS.marca.base);
-      setBrands(response.data || []);
+      const data = await marcaService.getAll();
+      setBrands(data || []);
     } catch (err) {
       console.error('Error al cargar marcas:', err);
     }
@@ -84,17 +89,17 @@ const AdminProducts = () => {
   // ===== FILTER PRODUCTS =====
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const brandName = product.marca || product.productosMarcas?.[0]?.marcas?.nombre || '';
-      const categoryName = product.categoria || product.categoriasProductos?.[0]?.categorias?.nombre || '';
+      const brandNames = product.marcas?.map(m => m.nombre).join(' ') || '';
+      const categoryNames = product.categorias?.map(c => c.nombre).join(' ') || '';
       
       const matchSearch = 
         product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        brandName.toLowerCase().includes(searchTerm.toLowerCase());
+        brandNames.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        categoryNames.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchCategory = 
         filterCategory === 'all' || 
-        categoryName === filterCategory ||
-        product.categoriaId === parseInt(filterCategory);
+        product.categorias?.some(c => c.id === parseInt(filterCategory) || c.nombre === filterCategory);
       
       const matchStatus = 
         filterStatus === 'all' ||
@@ -108,10 +113,9 @@ const AdminProducts = () => {
   // ===== HANDLERS =====
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
-    
     try {
-      await clienteAxios.delete(ENDPOINTS.productos.porId(id));
-      setProducts(products.filter(p => p.id !== id));
+      await productoService.delete(id);
+      await loadProducts();
     } catch (err) {
       console.error('Error al eliminar producto:', err);
       alert(err.response?.data?.Error || 'No se pudo eliminar el producto');
@@ -120,9 +124,8 @@ const AdminProducts = () => {
 
   const handleRestore = async (id) => {
     if (!window.confirm('¿Restaurar este producto?')) return;
-    
     try {
-      await clienteAxios.post(ENDPOINTS.productos.restaurar(id));
+      await productoService.restore(id);
       await loadProducts();
     } catch (err) {
       console.error('Error al restaurar producto:', err);
@@ -138,21 +141,23 @@ const AdminProducts = () => {
         nombre: formData.nombre,
         descripcion: formData.descripcion || '',
         precio: parseFloat(formData.precio),
+        precioOferta: formData.precioOferta ? parseFloat(formData.precioOferta) : null,
         stock: Boolean(formData.stock),
         garantia: formData.garantia || '12 meses',
-        oferta: Boolean(formData.oferta),
-        descuento: formData.descuento ? parseFloat(formData.descuento) : 0,
-        categoriaId: formData.categoriaId ? parseInt(formData.categoriaId) : null,
-        marcaId: formData.marcaId ? parseInt(formData.marcaId) : null
+        envioGratis: formData.envioGratis ? 1 : 0,
+        codigoSerie: formData.codigoSerie || null,
+        categoriaIds: formData.categoriaIds || [],
+        marcaIds: formData.marcaIds || [],
+        especificacionIds: [],
+        atributos: []
       };
 
+      console.log('📦 Enviando al backend:', JSON.stringify(productData, null, 2));
+
       if (editingProduct) {
-        await clienteAxios.put(
-          ENDPOINTS.productos.porId(editingProduct.id),
-          productData
-        );
+        await productoService.update(editingProduct.id, productData);
       } else {
-        await clienteAxios.post(ENDPOINTS.productos.base, productData);
+        await productoService.create(productData);
       }
       
       await loadProducts();
@@ -160,7 +165,12 @@ const AdminProducts = () => {
       setEditingProduct(null);
     } catch (err) {
       console.error('Error al guardar producto:', err);
-      alert(err.response?.data?.Error || 'Error al guardar el producto');
+      console.error('Respuesta del servidor:', err.response?.data);
+      const errorMsg = err.response?.data?.Error || 
+                       err.response?.data?.message || 
+                       err.response?.data?.title ||
+                       'Error al guardar el producto';
+      alert(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -183,32 +193,53 @@ const AdminProducts = () => {
   };
 
   // ===== HELPERS =====
-  const formatPrice = (price) => {
-    if (!price && price !== 0) return '$0';
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
   const hasStock = (stock) => Boolean(stock);
 
-  const getCategoryName = (product) => {
-    return product.categoria || 
-           product.categoriasProductos?.[0]?.categorias?.nombre || 
-           'N/D';
+  const getCategoryNames = (product) => {
+    if (product.categorias && product.categorias.length > 0) {
+      return product.categorias.map(c => c.nombre).join(', ');
+    }
+    return 'N/D';
   };
 
-  const getBrandName = (product) => {
-    return product.marca || 
-           product.productosMarcas?.[0]?.marcas?.nombre || 
-           'N/D';
+  const getBrandNames = (product) => {
+    if (product.marcas && product.marcas.length > 0) {
+      return product.marcas.map(m => m.nombre).join(', ');
+    }
+    return 'N/D';
   };
 
   const isActive = (product) => !product.deletedAt;
 
+  // ============================================
+  // RENDER: LOADING
+  // ============================================
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <AdminSidebar />
+        <div className="admin-main">
+          <AdminHeader title="Gestión de Productos" />
+          <div className="admin-content">
+            <div className="loading-container">
+              <div className="spinner-dots">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+              </div>
+              <div className="loading-text">Cargando productos<span className="dots">...</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // RENDER: MAIN
+  // ============================================
   return (
     <div className="admin-dashboard">
       <AdminSidebar />
@@ -218,10 +249,7 @@ const AdminProducts = () => {
           <div className="admin-page-content">
             <div className="page-header">
               <h2>📦 Lista de Productos</h2>
-              <button 
-                className="btn-primary"
-                onClick={openCreateModal}
-              >
+              <button className="btn-primary" onClick={openCreateModal}>
                 ➕ Agregar Producto
               </button>
             </div>
@@ -231,7 +259,7 @@ const AdminProducts = () => {
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Buscar productos por nombre o marca..."
+                  placeholder="Buscar productos por nombre, marca o categoría..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -264,10 +292,7 @@ const AdminProducts = () => {
                 </select>
                 
                 {(searchTerm || filterCategory !== 'all' || filterStatus !== 'all') && (
-                  <button 
-                    className="clear-filters-btn"
-                    onClick={clearFilters}
-                  >
+                  <button className="clear-filters-btn" onClick={clearFilters}>
                     ✕ Limpiar filtros
                   </button>
                 )}
@@ -277,122 +302,80 @@ const AdminProducts = () => {
             {error && (
               <div className="error-message">
                 <p>⚠️ {error}</p>
-                <button 
-                  className="btn-primary" 
-                  onClick={loadProducts}
-                  style={{ marginTop: '10px' }}
-                >
-                  Reintentar
-                </button>
+                <button className="btn-primary" onClick={loadProducts}>Reintentar</button>
               </div>
             )}
 
-            {loading ? (
-              <div className="loading-spinner-modern">
-                <div className="spinner-dots">
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                </div>
-                <div className="loading-text">
-                  Cargando productos<span className="dots">...</span>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="table-container">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Producto</th>
-                        <th>Marca</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="no-results">
+                        <div className="empty-state">
+                          <span className="empty-icon">🔍</span>
+                          <p>No se encontraron productos</p>
+                          <span className="empty-sub">Prueba con otros filtros o agrega un nuevo producto</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map(product => (
+                      <tr key={product.id} className={!isActive(product) ? 'row-inactive' : ''}>
+                        <td>#{product.id}</td>
+                        <td><span className="product-name">{product.nombre}</span></td>
+                        <td><span className="product-brand">{getBrandNames(product)}</span></td>
+                        <td><span className="product-category">{getCategoryNames(product)}</span></td>
+                        <td className="product-price">{formatPrice(product.precio)}</td>
+                        <td>
+                          <span className={`stock-badge ${hasStock(product.stock) ? 'stock-yes' : 'stock-no'}`}>
+                            {hasStock(product.stock) ? '✅ En Stock' : '❌ Sin Stock'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${isActive(product) ? 'status-active' : 'status-inactive'}`}>
+                            {isActive(product) ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <button className="btn-action btn-action-edit" onClick={() => openEditModal(product)} title="Editar producto">✏️</button>
+                            {isActive(product) ? (
+                              <button className="btn-action btn-action-delete" onClick={() => handleDelete(product.id)} title="Eliminar producto">🗑️</button>
+                            ) : (
+                              <button className="btn-action btn-action-restore" onClick={() => handleRestore(product.id)} title="Restaurar producto">🔄</button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {filteredProducts.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="no-results">
-                            <div className="empty-state">
-                              <span className="empty-icon">🔍</span>
-                              <p>No se encontraron productos</p>
-                              <span className="empty-sub">Prueba con otros filtros o agrega un nuevo producto</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredProducts.map(product => (
-                          <tr key={product.id} className={!isActive(product) ? 'row-inactive' : ''}>
-                            <td>#{product.id}</td>
-                            <td>
-                              <span className="product-name">{product.nombre}</span>
-                            </td>
-                            <td><span className="product-brand">{getBrandName(product)}</span></td>
-                            <td><span className="product-category">{getCategoryName(product)}</span></td>
-                            <td className="product-price">{formatPrice(product.precio)}</td>
-                            <td>
-                              <span className={`stock-badge ${hasStock(product.stock) ? 'stock-yes' : 'stock-no'}`}>
-                                {hasStock(product.stock) ? '✅ En Stock' : '❌ Sin Stock'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`status-badge ${isActive(product) ? 'status-active' : 'status-inactive'}`}>
-                                {isActive(product) ? 'Activo' : 'Inactivo'}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="action-buttons">
-                                <button 
-                                  className="btn-action btn-action-edit"
-                                  onClick={() => openEditModal(product)}
-                                  title="Editar producto"
-                                >
-                                  ✏️
-                                </button>
-                                {isActive(product) ? (
-                                  <button 
-                                    className="btn-action btn-action-delete"
-                                    onClick={() => handleDelete(product.id)}
-                                    title="Eliminar producto"
-                                  >
-                                    🗑️
-                                  </button>
-                                ) : (
-                                  <button 
-                                    className="btn-action btn-action-restore"
-                                    onClick={() => handleRestore(product.id)}
-                                    title="Restaurar producto"
-                                  >
-                                    🔄
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="table-footer">
-                  <div className="pagination-info">
-                    Mostrando <strong>{filteredProducts.length}</strong> de <strong>{products.length}</strong> productos
-                  </div>
-                </div>
-              </>
-            )}
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="table-footer">
+              <div className="pagination-info">
+                Mostrando <strong>{filteredProducts.length}</strong> de <strong>{products.length}</strong> productos
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* MODAL REDISEÑADO */}
       {showModal && (
         <ProductModal
           product={editingProduct}
@@ -411,7 +394,7 @@ const AdminProducts = () => {
 };
 
 // ============================================
-// PRODUCT MODAL COMPONENT
+// PRODUCT MODAL 
 // ============================================
 const ProductModal = ({ product, onClose, onSave, categories, brands, submitting }) => {
   const [formData, setFormData] = useState(() => {
@@ -420,16 +403,24 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
         ? product.precio.replace(/[^0-9.]/g, '') 
         : product.precio;
 
+      const rawPriceOferta = typeof product.precioOferta === 'string' 
+        ? product.precioOferta.replace(/[^0-9.]/g, '') 
+        : product.precioOferta;
+
+      const categoriaIds = product.categorias?.map(c => c.id) || [];
+      const marcaIds = product.marcas?.map(m => m.id) || [];
+
       return {
         nombre: product.nombre || '',
         descripcion: product.descripcion || '',
         precio: rawPrice || '',
+        precioOferta: rawPriceOferta || '',
         stock: typeof product.stock === 'boolean' ? product.stock : Boolean(product.stock),
         garantia: product.garantia || '12 meses',
-        marcaId: product.marcaId || product.marca?.id || '',
-        categoriaId: product.categoriaId || product.categoria?.id || '',
-        oferta: Boolean(product.oferta),
-        descuento: product.descuento || 0
+        envioGratis: product.envioGratis !== undefined ? Boolean(product.envioGratis) : true,
+        codigoSerie: product.codigoSerie || '',
+        categoriaIds: categoriaIds,
+        marcaIds: marcaIds
       };
     }
     return INITIAL_FORM_DATA;
@@ -448,6 +439,16 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
       return;
     }
 
+    if (formData.categoriaIds.length === 0) {
+      alert('Debe seleccionar al menos una categoría');
+      return;
+    }
+
+    if (formData.marcaIds.length === 0) {
+      alert('Debe seleccionar al menos una marca');
+      return;
+    }
+
     await onSave(formData);
   };
 
@@ -459,11 +460,39 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
     }));
   };
 
+  const handleCategoryChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value));
+    setFormData(prev => ({
+      ...prev,
+      categoriaIds: selectedOptions
+    }));
+  };
+
+  const handleBrandChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value));
+    setFormData(prev => ({
+      ...prev,
+      marcaIds: selectedOptions
+    }));
+  };
+
+  // Formatear precio con separadores de miles para mostrar
+  const formatPriceDisplay = (value) => {
+    if (!value) return '';
+    return new Intl.NumberFormat('es-AR').format(value);
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <h3>{product ? '✏️ Editar Producto' : '➕ Nuevo Producto'}</h3>
+      <div className="modal-content modal-product" onClick={e => e.stopPropagation()}>
+        {/* HEADER CON BOTÓN CERRAR */}
+        <div className="modal-header">
+          <h3>{product ? '✏️ Editar Producto' : '➕ Nuevo Producto'}</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} title="Cerrar">✕</button>
+        </div>
+
         <form onSubmit={handleSubmit}>
+          {/* Nombre - Ocupa todo el ancho */}
           <div className="form-group">
             <label>Nombre del Producto *</label>
             <input
@@ -477,49 +506,64 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
             />
           </div>
 
+          {/* Descripción - Ocupa todo el ancho */}
           <div className="form-group">
             <label>Descripción</label>
             <textarea
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
-              placeholder="Descripción del producto..."
-              rows="3"
+              placeholder="Descripción detallada del producto..."
+              rows="4"
               disabled={submitting}
             />
           </div>
           
+          {/* Precios - 2 columnas */}
           <div className="form-row">
-          <div className="form-group">
-            <label>Precio * (CLP)</label>
-            <input
-              type="text"
-              name="precio"
-              value={formData.precio}
-              onChange={(e) => {
-                // Permite al usuario escribir solo dígitos
-                const rawValue = e.target.value.replace(/\D/g, '');
-                setFormData(prev => ({ ...prev, precio: rawValue }));
-              }}
-              required
-              placeholder="Ej: 199999"
-              disabled={submitting}
-            />
-          </div>
             <div className="form-group">
-              <label className="checkbox-label" style={{ marginTop: '28px' }}>
-                <input
-                  type="checkbox"
-                  name="stock"
-                  checked={Boolean(formData.stock)}
-                  onChange={handleChange}
-                  disabled={submitting}
-                />
-                ¿En Stock / Disponible?
-              </label>
+              <label>Precio * (ARS)</label>
+              <input
+                type="text"
+                name="precio"
+                value={formData.precio}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\D/g, '');
+                  setFormData(prev => ({ ...prev, precio: rawValue }));
+                }}
+                required
+                placeholder="Ej: 199999"
+                disabled={submitting}
+              />
+              {formData.precio && (
+                <small className="help-text">
+                  {formatPriceDisplay(formData.precio)} ARS
+                </small>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Precio en Oferta (ARS)</label>
+              <input
+                type="text"
+                name="precioOferta"
+                value={formData.precioOferta}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\D/g, '');
+                  setFormData(prev => ({ ...prev, precioOferta: rawValue }));
+                }}
+                placeholder="Ej: 149999"
+                disabled={submitting}
+              />
+              {formData.precioOferta && (
+                <small className="help-text">
+                  {formatPriceDisplay(formData.precioOferta)} ARS
+                </small>
+              )}
             </div>
           </div>
 
+          {/* Garantía + Código Serie - 2 columnas */}
           <div className="form-row">
             <div className="form-group">
               <label>Garantía</label>
@@ -532,79 +576,109 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
                 disabled={submitting}
               />
             </div>
+
+            <div className="form-group">
+              <label>Código de Serie</label>
+              <input
+                type="text"
+                name="codigoSerie"
+                value={formData.codigoSerie}
+                onChange={handleChange}
+                placeholder="Código único del producto"
+                disabled={submitting}
+              />
+            </div>
           </div>
 
+          {/* Checkboxes - 2 columnas */}
+          <div className="form-row checkboxes-row">
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="stock"
+                  checked={Boolean(formData.stock)}
+                  onChange={handleChange}
+                  disabled={submitting}
+                />
+                ¿En Stock / Disponible?
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="envioGratis"
+                  checked={Boolean(formData.envioGratis)}
+                  onChange={handleChange}
+                  disabled={submitting}
+                />
+                ¿Envío Gratis?
+              </label>
+            </div>
+          </div>
+
+          {/* Marcas y Categorías - 2 columnas con selects más grandes */}
           <div className="form-row">
             <div className="form-group">
-              <label>Marca</label>
+              <label>
+                Marcas * 
+                <span className="help-label"> (selecciona múltiples)</span>
+              </label>
               <select
-                name="marcaId"
-                value={formData.marcaId}
-                onChange={handleChange}
+                name="marcaIds"
+                multiple
+                value={formData.marcaIds.map(String)}
+                onChange={handleBrandChange}
                 disabled={submitting}
+                className="select-multiple"
+                required
               >
-                <option value="">Seleccionar marca</option>
                 {brands.map(brand => (
                   <option key={brand.id} value={brand.id}>
                     {brand.nombre}
                   </option>
                 ))}
               </select>
+              <small className="help-text">
+                ⌨️ Ctrl/Cmd + clic para seleccionar múltiples
+              </small>
             </div>
+
             <div className="form-group">
-              <label>Categoría</label>
+              <label>
+                Categorías * 
+                <span className="help-label"> (selecciona múltiples)</span>
+              </label>
               <select
-                name="categoriaId"
-                value={formData.categoriaId}
-                onChange={handleChange}
+                name="categoriaIds"
+                multiple
+                value={formData.categoriaIds.map(String)}
+                onChange={handleCategoryChange}
                 disabled={submitting}
+                className="select-multiple"
+                required
               >
-                <option value="">Seleccionar categoría</option>
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
                     {cat.nombre}
                   </option>
                 ))}
               </select>
+              <small className="help-text">
+                ⌨️ Ctrl/Cmd + clic para seleccionar múltiples
+              </small>
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="oferta"
-                  checked={Boolean(formData.oferta)}
-                  onChange={handleChange}
-                  disabled={submitting}
-                />
-                ¿En oferta?
-              </label>
-            </div>
-            {formData.oferta && (
-              <div className="form-group">
-                <label>Descuento (%)</label>
-                <input
-                  type="number"
-                  name="descuento"
-                  value={formData.descuento}
-                  onChange={handleChange}
-                  placeholder="0"
-                  min="0"
-                  max="100"
-                  disabled={submitting}
-                />
-              </div>
-            )}
-          </div>
-
+          {/* Acciones */}
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>
               Cancelar
             </button>
             <button type="submit" className="btn-primary" disabled={submitting}>
-              {submitting ? 'Guardando...' : 'Guardar'}
+              {submitting ? 'Guardando...' : 'Guardar Producto'}
             </button>
           </div>
         </form>

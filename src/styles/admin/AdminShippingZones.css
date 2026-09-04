@@ -1,0 +1,56 @@
+/* src/styles/admin/AdminShippingZones.css */
+
+.admin-shipping-zones-container {
+  padding: 20px;
+}
+
+/* ===== ZONA CARD ===== */
+.zone-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.zone-info {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.zone-info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-info-item .label {
+  color: #94a3b8;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.zone-info-item .value {
+  color: #f1f5f9;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .zone-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .zone-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

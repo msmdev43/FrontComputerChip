@@ -1,12 +1,14 @@
+// src/pages/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import AdminStats from '../../components/Admin/AdminStats';
-import clienteAxios from '../../config/axiosClient';
-import { ENDPOINTS } from '../../config/config';
+import { dashboardService } from '../../services/dashboardService';
+import { pedidoService } from '../../services/pedidoService';
+import { formatPrice } from '../../config/currency';
 import '../../styles/admin/AdminDashboard.css';
-import '../../styles/Spinner.css'; // Importar el spinner global
+import '../../styles/Spinner.css';
 
 const AdminDashboard = () => {
   const { user } = useAdmin();
@@ -33,19 +35,6 @@ const AdminDashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  /**
-   * Formatea un precio en moneda chilena
-   */
-  const formatPrice = useCallback((price) => {
-    if (!price && price !== 0) return '$0';
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  }, []);
 
   /**
    * Obtiene el color del estado del pedido
@@ -94,24 +83,23 @@ const AdminDashboard = () => {
       setError(null);
 
       // 1. Obtener estadísticas del dashboard
-      const response = await clienteAxios.get(ENDPOINTS.admin.dashboard.stats);
-      
-      if (response.data) {
+      const statsData = await dashboardService.getStats();
+      if (statsData) {
         setStats(prev => ({
           ...prev,
-          ...response.data
+          ...statsData
         }));
       }
 
       // 2. Obtener pedidos recientes
       try {
-        const ordersResponse = await clienteAxios.get(ENDPOINTS.pedidos.recientes);
-        if (ordersResponse.data && Array.isArray(ordersResponse.data)) {
-          setRecentOrders(ordersResponse.data.slice(0, 5));
+        const ordersData = await pedidoService.getRecent();
+        if (ordersData && Array.isArray(ordersData)) {
+          setRecentOrders(ordersData.slice(0, 5));
         }
       } catch (orderError) {
         console.warn('No se pudieron cargar pedidos recientes:', orderError);
-        // No es crítico, el dashboard sigue funcionando
+        // El dashboard sigue funcionando
       }
 
     } catch (err) {
@@ -119,7 +107,6 @@ const AdminDashboard = () => {
       
       // Manejar diferentes tipos de errores
       if (err.response) {
-        // Error con respuesta del servidor
         const status = err.response.status;
         const message = err.response.data?.Error || err.response.data?.message;
         
@@ -133,10 +120,8 @@ const AdminDashboard = () => {
           setError(message || `Error ${status}: No se pudieron cargar los datos`);
         }
       } else if (err.request) {
-        // Error de red
         setError('Error de conexión. Verifique su conexión a Internet.');
       } else {
-        // Error inesperado
         setError('Error inesperado al cargar los datos.');
       }
     } finally {
@@ -166,16 +151,15 @@ const AdminDashboard = () => {
         <AdminSidebar />
         <div className="admin-main">
           <div className="loading-container">
-            <div className="loading-spinner-modern">
-              <div className="spinner-ring">
-                <div className="ring"></div>
-                <div className="ring"></div>
-                <div className="ring"></div>
-                <div className="ring"></div>
-              </div>
-              <div className="loading-text">
-                Cargando panel de control<span className="dots">...</span>
-              </div>
+            <div className="spinner-dots">
+              <div className="dot"></div>
+              <div className="dot"></div>
+              <div className="dot"></div>
+              <div className="dot"></div>
+              <div className="dot"></div>
+            </div>
+            <div className="loading-text">
+              Cargando panel de control<span className="dots">...</span>
             </div>
           </div>
         </div>
@@ -200,10 +184,7 @@ const AdminDashboard = () => {
               <div className="error-icon">⚠️</div>
               <p>{error}</p>
               <div className="error-actions">
-                <button 
-                  className="btn-primary" 
-                  onClick={loadDashboardData}
-                >
+                <button className="btn-primary" onClick={loadDashboardData}>
                   🔄 Reintentar
                 </button>
                 {error.includes('Sesión expirada') && (

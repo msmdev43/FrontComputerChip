@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
-import clienteAxios from '../../config/axiosClient';
-import { ENDPOINTS } from '../../config/config';
+import { pedidoService } from '../../services/pedidoService';
+import { formatPrice } from '../../config/currency';
+import '../../styles/Spinner.css';
 import '../../styles/admin/AdminOrders.css';
 
 // ============================================
@@ -62,8 +63,8 @@ const AdminOrders = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await clienteAxios.get(ENDPOINTS.pedidos.base);
-      setOrders(response.data || []);
+      const data = await pedidoService.getAll();
+      setOrders(data || []);
     } catch (err) {
       console.error('Error al cargar pedidos:', err);
       setError(err.response?.data?.Error || 'Error al cargar los pedidos');
@@ -114,25 +115,25 @@ const AdminOrders = () => {
     try {
       setUpdatingStatus(orderId);
       
-      // Buscar el endpoint correcto según el estado
-      let endpoint = '';
+      let result;
       switch (newStatus.toLowerCase()) {
         case 'confirmado':
-          endpoint = ENDPOINTS.pedidos.confirmar(orderId);
+          result = await pedidoService.confirmar(orderId);
           break;
         case 'enviado':
-          endpoint = ENDPOINTS.pedidos.enviar(orderId);
+          result = await pedidoService.enviar(orderId);
           break;
         case 'entregado':
-          endpoint = ENDPOINTS.pedidos.entregar(orderId);
+          result = await pedidoService.entregar(orderId);
+          break;
+        case 'cancelado':
+          result = await pedidoService.cancelar(orderId);
           break;
         default:
-          // Para cancelar o pendiente, usar el endpoint general
-          endpoint = ENDPOINTS.pedidos.porId(orderId);
+          // actualizar directamente
+          result = await pedidoService.update(orderId, { estado: newStatus });
           break;
       }
-
-      await clienteAxios.put(endpoint, { estado: newStatus });
       
       // Actualizar localmente
       setOrders(orders.map(order => 
@@ -151,9 +152,8 @@ const AdminOrders = () => {
 
   const cancelOrder = async (orderId) => {
     if (!window.confirm('¿Estás seguro de cancelar este pedido?')) return;
-    
     try {
-      await clienteAxios.put(ENDPOINTS.pedidos.cancelar(orderId));
+      await pedidoService.cancelar(orderId);
       await loadOrders();
     } catch (err) {
       console.error('Error al cancelar pedido:', err);
@@ -172,21 +172,11 @@ const AdminOrders = () => {
   };
 
   // ===== HELPERS =====
-  const formatPrice = (price) => {
-    if (!price && price !== 0) return '$0';
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('es-CL', {
+      return date.toLocaleDateString('es-AR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
@@ -227,19 +217,15 @@ const AdminOrders = () => {
         <div className="admin-main">
           <AdminHeader title="Gestión de Pedidos" />
           <div className="admin-content">
-            <div className="admin-page-content">
-              <div className="loading-spinner-modern">
-                <div className="spinner-dots">
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                </div>
-                <div className="loading-text">
-                  Cargando pedidos<span className="dots">...</span>
-                </div>
+            <div className="loading-container">
+              <div className="spinner-dots">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
               </div>
+              <div className="loading-text">Cargando pedidos<span className="dots">...</span></div>
             </div>
           </div>
         </div>
@@ -260,13 +246,7 @@ const AdminOrders = () => {
             <div className="admin-page-content">
               <div className="error-message">
                 <p>⚠️ {error}</p>
-                <button 
-                  className="btn-primary" 
-                  onClick={loadOrders}
-                  style={{ marginTop: '10px' }}
-                >
-                  Reintentar
-                </button>
+                <button className="btn-primary" onClick={loadOrders}>Reintentar</button>
               </div>
             </div>
           </div>
@@ -288,11 +268,7 @@ const AdminOrders = () => {
             {/* Page Header */}
             <div className="page-header">
               <h2>📋 Pedidos</h2>
-              <button 
-                className="btn-primary" 
-                onClick={loadOrders}
-                title="Recargar pedidos"
-              >
+              <button className="btn-primary" onClick={loadOrders} title="Recargar pedidos">
                 🔄 Recargar
               </button>
             </div>
@@ -350,10 +326,7 @@ const AdminOrders = () => {
               </select>
 
               {hasActiveFilters && (
-                <button 
-                  className="clear-filters-btn"
-                  onClick={clearFilters}
-                >
+                <button className="clear-filters-btn" onClick={clearFilters}>
                   ✕ Limpiar filtros
                 </button>
               )}
@@ -458,7 +431,6 @@ const AdminOrders = () => {
             setShowOrderDetail(false);
             setSelectedOrder(null);
           }}
-          formatPrice={formatPrice}
           formatDate={formatDate}
           getStatusLabel={getStatusLabel}
           getStatusColor={getStatusColor}
@@ -474,7 +446,6 @@ const AdminOrders = () => {
 const OrderDetailModal = ({ 
   order, 
   onClose, 
-  formatPrice, 
   formatDate, 
   getStatusLabel,
   getStatusColor 

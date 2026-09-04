@@ -1,0 +1,92 @@
+/* src/styles/admin/AdminLoading.css */
+
+.admin-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #0f172a;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.admin-loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.admin-loading-spinner .spinner-dots {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-loading-spinner .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.admin-loading-spinner .dot:nth-child(1) {
+  animation-delay: -0.32s;
+  background: #d6791b;
+}
+
+.admin-loading-spinner .dot:nth-child(2) {
+  animation-delay: -0.16s;
+  background: #8b5cf6;
+}
+
+.admin-loading-spinner .dot:nth-child(3) {
+  animation-delay: 0s;
+  background: #3b82f6;
+}
+
+.admin-loading-spinner .dot:nth-child(4) {
+  animation-delay: 0.16s;
+  background: #10b981;
+}
+
+.admin-loading-spinner .dot:nth-child(5) {
+  animation-delay: 0.32s;
+  background: #f59e0b;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.2;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.admin-loading-text {
+  color: #94a3b8;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.admin-loading-text .dots {
+  display: inline-block;
+  animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

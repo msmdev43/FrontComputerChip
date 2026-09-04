@@ -1,19 +1,28 @@
-// C:\xampp\htdocs\FrontComputerChip\src\pages\Admin\AdminSettings.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
+import { CURRENCY } from '../../config/currency'; 
 import '../../styles/admin/AdminSettings.css';
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
     siteName: 'Computer Chip',
     siteEmail: 'info@computerchip.com',
-    currency: 'CLP',
-    taxRate: '19',
+    currency: CURRENCY.currency,  // ARS por defecto
+    taxRate: '21',
     maintenanceMode: false
   });
 
   const [message, setMessage] = useState('');
+
+  const currencyOptions = [
+    { value: 'ARS', label: 'ARS - Peso Argentino' },
+    { value: 'USD', label: 'USD - Dólar' },
+    { value: 'EUR', label: 'EUR - Euro' },
+    { value: 'CLP', label: 'CLP - Peso Chileno' },
+    { value: 'BRL', label: 'BRL - Real Brasileño' },
+    { value: 'MXN', label: 'MXN - Peso Mexicano' }
+  ];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -21,20 +30,17 @@ const AdminSettings = () => {
       ...settings,
       [name]: type === 'checkbox' ? checked : value
     });
-    // Limpiar mensaje al cambiar
     setMessage('');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Guardar en localStorage para persistencia
     localStorage.setItem('adminSettings', JSON.stringify(settings));
     setMessage('✅ Configuración guardada exitosamente!');
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // Cargar settings guardados al iniciar
-  React.useEffect(() => {
+  useEffect(() => {
     const saved = localStorage.getItem('adminSettings');
     if (saved) {
       try {
@@ -100,9 +106,11 @@ const AdminSettings = () => {
                       onChange={handleChange}
                       className="settings-select"
                     >
-                      <option value="CLP">CLP - Peso Chileno</option>
-                      <option value="USD">USD - Dólar</option>
-                      <option value="EUR">EUR - Euro</option>
+                      {currencyOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
