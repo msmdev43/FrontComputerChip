@@ -12,6 +12,7 @@ import Contacto from './pages/Contacto'
 import Login from './pages/Login'      
 import Register from './pages/Register'
 import Cart from './pages/Cart'
+import ArmaTuPc from './pages/ArmaTuPc'
 import AdminRoutes from './routes/AdminRoutes'
 import './App.css'
 
@@ -38,6 +39,7 @@ function App() {
                       <Route path="/login" element={<Login />} />      
                       <Route path="/registro" element={<Register />} />
                       <Route path="/carrito" element={<Cart />} />
+                      <Route path="/armatupc" element={<ArmaTuPc />} />
                     </Routes>
                   </div>
                 </div>

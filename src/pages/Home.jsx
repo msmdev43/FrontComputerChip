@@ -43,7 +43,11 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    loadHomeData();
+    const timeoutId = setTimeout(() => {
+      loadHomeData();
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [loadHomeData]);
 
   // ===== HELPERS =====

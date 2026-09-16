@@ -70,7 +70,7 @@ function Navbar() {
             <li><Link to="/productos">Productos</Link></li> 
             <li><Link to="/contacto">Contacto</Link></li> 
             <li><a href="#ofertas">Ofertas</a></li>
-            <li><a href="#armapc">Armá tu PC</a></li>
+            <li><a href="/armatupc">Armá tu PC</a></li>
             <li><a href="#computadoras">Computadoras</a></li>
             <li><a href="#placas">Placas de Video</a></li>
             <li><a href="#gabinete">Gabinetes</a></li>

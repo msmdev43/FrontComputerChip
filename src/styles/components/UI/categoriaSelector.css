@@ -1,0 +1,49 @@
+.cat-icon-btn {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cat-icon-btn:hover {
+  border-color: #93c5fd;
+  background: #f9fafb;
+}
+
+.cat-icon-btn--activa {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.cat-icon-btn--completada {
+  border-color: #22c55e;
+}
+
+.cat-icon-btn__img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.cat-icon-btn__check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  background: #22c55e;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
