@@ -26,6 +26,13 @@ export const productoService = {
         return data;
     },
 
+    getByCategoriaYMarca: async (categoriaId, marcaId) => {
+        const { data } = await clienteAxios.get(
+            ENDPOINTS.productos.porCategoriaYMarca(categoriaId, marcaId)
+        );
+        return data;
+    },
+
     getByPrecioRange: async (min, max) => {
         const { data } = await clienteAxios.get(ENDPOINTS.productos.precio, {
             params: { min, max }

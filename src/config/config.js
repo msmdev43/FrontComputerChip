@@ -104,6 +104,7 @@ export const ENDPOINTS = {
         porId: (id) => `/Productos/${id}`,
         porCategoria: (categoriaId) => `/Productos/categoria/${categoriaId}`,
         porMarca: (marcaId) => `/Productos/marca/${marcaId}`,
+        porCategoriaYMarca: (categoriaId, marcaId) => `/Productos/categoria/${categoriaId}/marca/${marcaId}`,
         precio: '/Productos/precio',
         stock: (inStock) => `/Productos/stock/${inStock}`,
         oferta: '/Productos/oferta',

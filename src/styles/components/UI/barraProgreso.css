@@ -1,0 +1,35 @@
+.barra-progreso {
+  width: 100%;
+}
+
+.barra-progreso__info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.barra-progreso__texto {
+  font-weight: 500;
+}
+
+.barra-progreso__porcentaje {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.barra-progreso__track {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barra-progreso__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
