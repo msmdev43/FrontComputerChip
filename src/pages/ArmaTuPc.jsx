@@ -6,6 +6,7 @@ import CategoriaSelector from '../components/UI/CategoriaSelector';
 import BarraProgreso from '../components/UI/BarraProgreso';
 import ResumenBuild from '../components/UI/ResumenBuild';
 import { getCategoriaMeta } from '../components/UI/categoriasMeta';
+import ThemeToggle from '../components/ThemeToggle';
 import '../styles/armaTuPc.css';
 
 const formatPrecio = (v) =>
@@ -138,7 +139,10 @@ export default function ArmaTuPc() {
     <section className="atp">
       {/* HEADER */}
       <header className="atp__header">
-        <h1>Armá tu PC</h1>
+        <div className="atp__header-top">
+          <h1>Armá tu PC</h1>
+          <ThemeToggle />
+        </div>
         <div className="atp__header-progreso">
           <BarraProgreso actual={completados} total={categorias.length} />
         </div>
