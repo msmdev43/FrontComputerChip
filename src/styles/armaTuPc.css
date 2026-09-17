@@ -1,3 +1,61 @@
+/*-----------------------PROXIMAMENTE-------------------------------*/
+.atp-proximamente {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.atp-proximamente__card {
+  max-width: 520px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 40px 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.atp-proximamente__icono {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.atp-proximamente__card h1 {
+  font-size: 1.6rem;
+  margin: 0 0 12px 0;
+  color: #111827;
+}
+
+.atp-proximamente__badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+
+.atp-proximamente__texto {
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.atp-proximamente__hint {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/*-----------------------ARMA TU PC BASE-------------------------------*/
 .atp {
   padding: 24px;
   max-width: 1500px;

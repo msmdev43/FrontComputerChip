@@ -11,6 +11,8 @@ import '../styles/armaTuPc.css';
 const formatPrecio = (v) =>
   v != null ? `$${Number(v).toLocaleString('es-AR')}` : '—';
 
+const PROXIMAMENTE = true;
+
 export default function ArmaTuPc() {
   // -------- Estado --------
   const [categorias, setCategorias] = useState([]);
@@ -115,6 +117,22 @@ export default function ArmaTuPc() {
   if (loadingCats) return <p className="atp__estado">Cargando...</p>;
   if (error && categorias.length === 0)
     return <p className="atp__estado atp__estado--error">{error}</p>;
+
+  if (PROXIMAMENTE) {
+    return (
+      <section className="atp-proximamente">
+        <div className="atp-proximamente__card">
+          <span className="atp-proximamente__icono" aria-hidden>🚧</span>
+          <h1>Armá tu PC</h1>
+          <p className="atp-proximamente__badge">Próximamente</p>
+          <p className="atp-proximamente__texto">
+            Estamos trabajando para que puedas armar tu equipo componente por
+            componente con validación de compatibilidad en tiempo real.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="atp">
