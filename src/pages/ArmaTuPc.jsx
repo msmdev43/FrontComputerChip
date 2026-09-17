@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { categoriaService } from '../../services/categoriaService';
-import { marcaService } from '../../services/marcaService';
-import { productoService } from '../../services/productoService';
+import { categoriaService } from '../services/categoriaService';
+import { marcaService } from '../services/marcaService';
+import { productoService } from '../services/productoService';
 import CategoriaSelector from '../components/UI/CategoriaSelector';
 import BarraProgreso from '../components/UI/BarraProgreso';
 import ResumenBuild from '../components/UI/ResumenBuild';
-import { getCategoriaMeta } from '../../constants/categoriasMeta';
+import { getCategoriaMeta } from '../components/UI/categoriasMeta';
 import '../styles/armaTuPc.css';
 
 const formatPrecio = (v) =>
