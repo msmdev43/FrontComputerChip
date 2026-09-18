@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { productoService } from '../services/productoService';
 import '../styles/Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -62,9 +64,18 @@ const Home = () => {
       .replace(/-+/g, '-');
   };
 
-  const handleViewDetails = (productId) => {
-    // El ProductCard maneja la navegación
-  };
+  // ✅ Ahora sí navega al detalle del producto
+  const handleViewDetails = useCallback((productId) => {
+    const allProducts = [...featuredProducts, ...newProducts, ...saleProducts];
+    const product = allProducts.find(p => p.id === productId);
+
+    if (product) {
+      const slug = createSlug(product.nombre);
+      navigate(`/productos/${slug}/${productId}`);
+    } else {
+      navigate(`/productos/${productId}`);
+    }
+  }, [featuredProducts, newProducts, saleProducts, navigate]);
 
   // ============================================
   // RENDER: LOADING
@@ -115,7 +126,7 @@ const Home = () => {
         {/* Hero Section */}
         <section className="hero-section">
           <div className="hero-content">
-            <h1>🐱 Bienvenido a ComputerChip</h1>
+            <h1>Bienvenido a ComputerChip</h1>
             <p>Tu tienda de confianza para componentes de computadora, reparación y servicio técnico especializado</p>
             <div className="hero-buttons">
               <Link to="/productos" className="hero-btn-primary">

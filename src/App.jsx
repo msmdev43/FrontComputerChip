@@ -8,6 +8,7 @@ import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
 import ProductDetail from './pages/ProductDetail'
+import Ofertas from './pages/Ofertas'        
 import Contacto from './pages/Contacto'
 import Login from './pages/Login'      
 import Register from './pages/Register'
@@ -35,6 +36,7 @@ function App() {
                       <Route path="/productos" element={<Productos />} />
                       <Route path="/productos/:slug/:id" element={<ProductDetail />} />
                       <Route path="/productos/:id" element={<ProductDetail />} />
+                      <Route path="/ofertas" element={<Ofertas />} /> 
                       <Route path="/contacto" element={<Contacto />} />
                       <Route path="/login" element={<Login />} />      
                       <Route path="/registro" element={<Register />} />

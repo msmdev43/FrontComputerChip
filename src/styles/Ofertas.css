@@ -1,0 +1,188 @@
+/* C:\xampp\htdocs\FrontComputerChip\src\styles\Ofertas.css */
+
+.ofertas-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+}
+
+.ofertas-page {
+  flex: 1 0 auto;
+  padding: 20px 0 40px;
+  background: var(--bg);
+  width: 100%;
+}
+
+/* ===== HEADER SIMPLE ===== */
+.ofertas-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.ofertas-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 8px 0;
+}
+
+.ofertas-subtitle {
+  color: var(--text);
+  font-size: 15px;
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* ===== FILTROS ===== */
+.ofertas-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ofertas-filters .filter-group,
+.ofertas-filters .search-group {
+  flex: 1;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.ofertas-filters .filter-select,
+.ofertas-filters .search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.ofertas-filters .filter-select:focus,
+.ofertas-filters .search-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.ofertas-filters .filter-select:hover,
+.ofertas-filters .search-input:hover {
+  border-color: var(--color-muted);
+}
+
+.ofertas-filters .search-group {
+  position: relative;
+}
+
+.ofertas-filters .search-group::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ofertas-filters .search-input {
+  padding-left: 36px;
+}
+
+.ofertas-filters .search-input::placeholder {
+  color: var(--text);
+  opacity: 0.5;
+}
+
+/* ===== STATS ===== */
+.ofertas-stats {
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--text);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.ofertas-stats .search-term {
+  font-weight: 600;
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+/* ===== CTA FINAL ===== */
+.ofertas-cta {
+  margin-top: 48px;
+  padding: 32px;
+  border-radius: 14px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.ofertas-cta h3 {
+  font-size: 22px;
+  color: var(--text-h);
+  margin: 0 0 8px 0;
+}
+
+.ofertas-cta p {
+  color: var(--text);
+  margin: 0 0 20px 0;
+}
+
+.ofertas-cta-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.ofertas-cta-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .ofertas-header h1 {
+    font-size: 28px;
+  }
+
+  .ofertas-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ofertas-filters .filter-group,
+  .ofertas-filters .search-group {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .ofertas-header h1 {
+    font-size: 22px;
+  }
+
+  .ofertas-subtitle {
+    font-size: 13px;
+  }
+
+  .ofertas-cta {
+    padding: 24px 16px;
+  }
+
+  .ofertas-cta h3 {
+    font-size: 18px;
+  }
+}

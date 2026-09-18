@@ -1,6 +1,6 @@
 // C:\xampp\htdocs\FrontComputerChip\src\components\Navbar.jsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom'  
+import { Link, NavLink } from 'react-router-dom';
 import { useCart } from '../context/CartContext'; 
 import logoAbierto from '../assets/LogoComputerChip.png'
 import logoCerrado from '../assets/LogoComputerChipOjosCerrados.png'
@@ -16,13 +16,11 @@ function Navbar() {
   const itemCount = getItemCount();
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  // Helper para clases activas
+  const linkClass = ({ isActive }) => (isActive ? 'active' : '');
 
   return (
     <>
@@ -66,14 +64,14 @@ function Navbar() {
         <nav className="cc-header-bottom">
           <button className="cc-products-btn" onClick={toggleMenu}>☰ Productos</button>
           <ul className="cc-nav-links">
-            <li><Link to="/">Inicio</Link></li> 
-            <li><Link to="/productos">Productos</Link></li> 
-            <li><Link to="/contacto">Contacto</Link></li> 
-            <li><a href="#ofertas">Ofertas</a></li>
-            <li><a href="/armatupc">Armá tu PC</a></li>
-            <li><a href="#computadoras">Computadoras</a></li>
-            <li><a href="#placas">Placas de Video</a></li>
-            <li><a href="#gabinete">Gabinetes</a></li>
+            <li><NavLink to="/" className={linkClass} end>Inicio</NavLink></li>
+            <li><NavLink to="/productos" className={linkClass}>Productos</NavLink></li>
+            <li><NavLink to="/ofertas" className={linkClass}>🔥 Ofertas</NavLink></li>
+            <li><NavLink to="/armatupc" className={linkClass}>Armá tu PC</NavLink></li>
+            <li><NavLink to="/contacto" className={linkClass}>Contacto</NavLink></li>
+            <li><Link to="/productos?categoria=Computadoras">Computadoras</Link></li>
+            <li><Link to="/productos?categoria=Placas de Video">Placas de Video</Link></li>
+            <li><Link to="/productos?categoria=Gabinetes">Gabinetes</Link></li>
           </ul>
         </nav>
       </header>

@@ -27,16 +27,17 @@ function ProductDetail() {
     try {
       setLoading(true);
       setError(null);
-      
-      const productId = parseInt(id);
-      if (isNaN(productId)) {
+
+      // ✅ Acepta id numérico o string (Mongo/ObjectId)
+      const productId = id;
+      if (!productId) {
         setError('ID de producto inválido');
         setLoading(false);
         return;
       }
 
       const data = await productoService.getById(productId);
-      
+
       if (!data) {
         setError('Producto no encontrado');
         setLoading(false);
@@ -51,10 +52,11 @@ function ProductDetail() {
       }
 
       setProduct(data);
-      
+
       // Cargar productos relacionados
       try {
         const related = await productoService.getRelated(productId);
+        console.log('Productos relacionados recibidos:', related); // ✅ debug
         setRelatedProducts(related || []);
       } catch (err) {
         console.warn('No se pudieron cargar productos relacionados:', err);
@@ -104,7 +106,7 @@ function ProductDetail() {
   // ===== HANDLERS =====
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     const productForCart = {
       id: product.id,
       nombre: product.nombre,
@@ -120,7 +122,7 @@ function ProductDetail() {
         descuento: product.oferta.descuento || 0
       } : null
     };
-    
+
     addToCart(productForCart, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
@@ -161,6 +163,19 @@ function ProductDetail() {
     } catch (error) {
       console.error('Error al copiar:', error);
     }
+  };
+
+  // ✅ Navegar a un producto relacionado (funciona con id numérico o string)
+  const handleRelatedClick = (relProduct) => {
+    if (!relProduct) return;
+    // ✅ Acepta id o _id según el backend
+    const relId = relProduct.id ?? relProduct._id;
+    if (relId === undefined || relId === null) {
+      console.warn('Producto relacionado sin id:', relProduct);
+      return;
+    }
+    const relSlug = createSlug(relProduct.nombre);
+    navigate(`/productos/${relSlug}/${relId}`);
   };
 
   // ===== RENDER: LOADING =====
@@ -235,7 +250,7 @@ function ProductDetail() {
               <span className="detail-breadcrumb-sep">/</span>
               <span className="detail-breadcrumb-current">{nombre}</span>
             </nav>
-            
+
             <div className="detail-share-actions">
               <button className="detail-share-btn" onClick={handleShare} title="Compartir">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -445,21 +460,34 @@ function ProductDetail() {
             <div className="detail-related-products">
               <h3>🛒 Productos relacionados</h3>
               <div className="detail-related-grid">
-                {relatedProducts.slice(0, 4).map((relProduct) => (
-                  <Link 
-                    key={relProduct.id} 
-                    to={`/productos/${createSlug(relProduct.nombre)}/${relProduct.id}`}
-                    className="detail-related-card"
-                  >
-                    <img 
-                      src={relProduct.imagenes?.[0]?.url || '/images/product-placeholder.webp'} 
-                      alt={relProduct.nombre}
-                      onError={(e) => { e.target.src = '/images/product-placeholder.webp'; }}
-                    />
-                    <span className="detail-related-name">{relProduct.nombre}</span>
-                    <span className="detail-related-price">{formatPrice(relProduct.precio)}</span>
-                  </Link>
-                ))}
+                {relatedProducts.slice(0, 4).map((relProduct) => {
+                  // ✅ Soporta id o _id
+                  const relId = relProduct.id ?? relProduct._id;
+                  return (
+                    <div
+                      key={relId}
+                      className="detail-related-card"
+                      onClick={() => handleRelatedClick(relProduct)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleRelatedClick(relProduct);
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <img
+                        src={relProduct.imagenes?.[0]?.url || '/images/product-placeholder.webp'}
+                        alt={relProduct.nombre}
+                        onError={(e) => { e.target.src = '/images/product-placeholder.webp'; }}
+                      />
+                      <span className="detail-related-name">{relProduct.nombre}</span>
+                      <span className="detail-related-price">{formatPrice(relProduct.precio)}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
