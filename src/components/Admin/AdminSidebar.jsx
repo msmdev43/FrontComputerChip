@@ -22,9 +22,12 @@ const AdminSidebar = () => {
     { icon: '🏷️', label: 'Categorías y Marcas', path: '/admin/categories-brands', group: 'main' },
     { icon: '📦', label: 'Pedidos', path: '/admin/orders', group: 'main' },
     { icon: '👥', label: 'Usuarios', path: '/admin/users', group: 'main' },
+    
     // Gestión
-    { icon: '🚚', label: 'Zonas de Envío', path: '/admin/shipping-zones', group: 'gestion' },
     { icon: '📋', label: 'Especificaciones', path: '/admin/specifications', group: 'gestion' },
+    { icon: '⚙️', label: 'Atributos', path: '/admin/attributes', group: 'gestion' },
+    { icon: '🚚', label: 'Zonas de Envío', path: '/admin/shipping-zones', group: 'gestion' },
+    
     // Sistema
     { icon: '⚙️', label: 'Configuración', path: '/admin/settings', group: 'sistema' }
   ];

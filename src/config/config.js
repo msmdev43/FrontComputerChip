@@ -37,7 +37,7 @@ export const ENDPOINTS = {
     // USUARIOS - Gestión de usuarios
     // ============================================
     usuarios: {
-        all: '/Usuario/getAll',           // singular ✅
+        all: '/Usuario/getAll',          
         porId: (id) => `/Usuario/${id}`,
         me: '/Usuario/me',
         buscar: (q) => `/Usuario/buscar?q=${encodeURIComponent(q)}`,
@@ -129,6 +129,31 @@ export const ENDPOINTS = {
         restaurar: (id) => `/Productos/${id}/restaurar`,
         categorias: (id) => `/Productos/${id}/categorias`,
         marcas: (id) => `/Productos/${id}/marcas`
+    },
+
+    // ============================================
+    // ATRIBUTOS - Atributos
+    // ============================================
+
+    atributos: {
+        base: '/Atributo',
+        porId: (id) => `/Atributo/${id}`,
+        detalle: (id) => `/Atributo/${id}/detalle`,
+        buscar: (nombre) => `/Atributo/buscar?nombre=${encodeURIComponent(nombre)}`,
+        asignaciones: '/Atributo/asignaciones',
+
+        // Relación Atributo ↔ Producto
+        porProducto: (productoId) => `/Atributo/producto/${productoId}`,
+        asignarAProducto: (productoId) => `/Atributo/producto/${productoId}`,
+        actualizarValor: (productoId, atributoId) =>
+            `/Atributo/producto/${productoId}/${atributoId}`,
+        quitarDeProducto: (productoId, atributoId) =>
+            `/Atributo/producto/${productoId}/${atributoId}`,
+
+        // Compatibilidad
+        comparar: '/Atributo/comparar',
+        productosPorValor: (atributoId, valor) =>
+            `/Atributo/${atributoId}/productos?valor=${encodeURIComponent(valor)}`
     },
 
     // ============================================

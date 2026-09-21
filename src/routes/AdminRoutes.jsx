@@ -1,5 +1,4 @@
 // src/routes/AdminRoutes.jsx
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAdmin } from '../context/AdminContext';
 import '../../src/styles/admin/AdminLoading.css';
@@ -14,6 +13,7 @@ import AdminUsers from '../pages/Admin/AdminUsers';
 import AdminSettings from '../pages/Admin/AdminSettings';
 import AdminShippingZones from '../pages/Admin/AdminShippingZones';
 import AdminSpecifications from '../pages/Admin/AdminSpecifications';
+import AdminAttributes from '../pages/Admin/AdminAttributes';
 
 // ============================================
 // COMPONENTE PRIVATE ROUTE
@@ -113,7 +113,16 @@ const AdminRoutes = () => {
           </PrivateRoute>
         } 
       />
-      
+
+      <Route 
+        path="/attributes" 
+        element={
+          <PrivateRoute>
+            <AdminAttributes />
+          </PrivateRoute>
+        } 
+      />
+
       <Route 
         path="/settings" 
         element={
