@@ -1,5 +1,5 @@
 // src/pages/Admin/AdminUsers.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import { usuarioService } from '../../services/usuarioService';
@@ -20,8 +20,7 @@ const AdminUsers = () => {
       setLoading(true);
       setError(null);
       
-      // Obtener el usuario autenticado (admin)
-      const data = await usuarioService.getMe();
+      const data = await usuarioService.getAll();
       
       // Si la respuesta es un objeto único, lo convertimos en array
       if (Array.isArray(data)) {
@@ -34,13 +33,16 @@ const AdminUsers = () => {
       }
     } catch (err) {
       console.error('Error al cargar usuarios:', err);
-      setError(err.response?.data?.Error || 'Error al cargar los usuarios');
+      setError(err.response?.data?.Error || err.response?.data || 'Error al cargar los usuarios');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadUsers(); }, [loadUsers]);
+  useEffect(() => {
+    const timeoutId = setTimeout(loadUsers, 0);
+    return () => clearTimeout(timeoutId);
+  }, [loadUsers]);
 
   // ===== FILTER USERS =====
   const filteredUsers = users.filter(user => {

@@ -34,6 +34,19 @@ export const ENDPOINTS = {
     },
 
     // ============================================
+    // USUARIOS - Gestión de usuarios
+    // ============================================
+    usuarios: {
+        all: '/Usuario/getAll',           // singular ✅
+        porId: (id) => `/Usuario/${id}`,
+        me: '/Usuario/me',
+        buscar: (q) => `/Usuario/buscar?q=${encodeURIComponent(q)}`,
+        recientes: (days = 7) => `/Usuario/recientes?days=${days}`,
+        stats: '/Usuario/stats',
+        eliminar: (id) => `/Usuario/${id}`
+    },
+
+    // ============================================
     // CATEGORIA - Categorías
     // ============================================
     categoria: {
