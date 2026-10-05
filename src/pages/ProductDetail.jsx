@@ -136,13 +136,19 @@ function ProductDetail() {
     }, 500);
   };
 
+  const MAX_QUANTITY = 10; // Límite máximo de cantidad
+
   const changeQuantity = (delta) => {
+
+    if (!product?.stock) return;
+
     setQuantity((prev) => {
       const next = prev + delta;
       if (next < 1) return 1;
-      if (product?.stock && next > product.stock) return product.stock;
+      if (next > MAX_QUANTITY) return MAX_QUANTITY;
       return next;
     });
+
     if (addedToCart) setAddedToCart(false);
   };
 
@@ -343,9 +349,9 @@ function ProductDetail() {
                     <div className="detail-quantity-selector">
                       <span>Cantidad</span>
                       <div className="detail-quantity-controls">
-                        <button onClick={() => changeQuantity(-1)} disabled={quantity <= 1}>−</button>
+                        <button onClick={() => changeQuantity(-1)} disabled={!inStock || quantity <= 1}>−</button>
                         <span className="detail-quantity-value">{quantity}</span>
-                        <button onClick={() => changeQuantity(1)} disabled={quantity >= 10}>+</button>
+                        <button onClick={() => changeQuantity(1)} disabled={!inStock || quantity >= MAX_QUANTITY}>+</button>
                       </div>
                     </div>
                     <button
