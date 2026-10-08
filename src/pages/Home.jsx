@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { productoService } from '../services/productoService';
+import BackToTop from '../components/BackToTop';
 import '../styles/Home.css';
 
 const Home = () => {
@@ -220,6 +221,7 @@ const Home = () => {
           </div>
         </section>
       </div>
+      <BackToTop />
     </div>
   );
 };

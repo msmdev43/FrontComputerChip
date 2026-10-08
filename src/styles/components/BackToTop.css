@@ -1,0 +1,77 @@
+/* Flecha flotante con progreso de lectura. */
+.back-to-top {
+  position: fixed;
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--scroll-top-bottom, 24px) + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 58px;
+  height: 58px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border, #e2e0e6);
+  border-radius: 50%;
+  background: var(--code-bg, #f0eef3);
+  color: var(--text-h, #1a1a2e);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 16%);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(12px) scale(.92);
+  transition: opacity .2s ease, visibility .2s ease, transform .2s ease,
+    box-shadow .2s ease, color .2s ease;
+}
+.back-to-top--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+.back-to-top__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-width: 2.5;
+  pointer-events: none;
+}
+.back-to-top__track { stroke: var(--border, #e2e0e6); }
+.back-to-top__progress {
+  stroke: var(--accent, #d6791b);
+  stroke-linecap: round;
+}
+.back-to-top__arrow {
+  position: relative;
+  pointer-events: none;
+  transition: transform .2s ease;
+}
+.back-to-top:focus-visible {
+  outline: 3px solid var(--accent, #d6791b);
+  outline-offset: 4px;
+}
+@media (hover: hover) {
+  .back-to-top--visible:hover {
+    transform: translateY(-3px);
+    color: var(--accent, #d6791b);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 22%);
+  }
+  .back-to-top:hover .back-to-top__arrow { transform: translateY(-2px); }
+}
+.back-to-top--visible:active { transform: scale(.94); }
+@media (max-width: 768px) {
+  .back-to-top {
+    width: 50px;
+    height: 50px;
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--scroll-top-bottom, 16px) + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top, .back-to-top__arrow { transition: none; }
+}
