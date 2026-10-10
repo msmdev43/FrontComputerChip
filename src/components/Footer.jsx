@@ -53,11 +53,11 @@ const Footer = () => {
         <div className="cf-section">
           <h4 className="cf-title">Categorías</h4>
           <ul className="cf-links">
-            <li><a href="#">Procesadores</a></li>
-            <li><a href="#">Tarjetas Gráficas</a></li>
-            <li><a href="#">Placas Base</a></li>
-            <li><a href="#">Memorias RAM</a></li>
-            <li><a href="#">Almacenamiento</a></li>
+            <li><Link to={`/productos?categoria=${encodeURIComponent("Procesadores")}`}>Procesadores</Link></li>
+            <li><Link to={`/productos?categoria=${encodeURIComponent("Placas De Video")}`}>Tarjetas Gráficas</Link></li>
+            <li><Link to={`/productos?categoria=${encodeURIComponent("Placas Madre")}`}>Placas Base</Link></li>
+            <li><Link to={`/productos?categoria=${encodeURIComponent("Memorias Para Pc")}`}>Memorias RAM</Link></li>
+            <li><Link to={`/productos?categoria=${encodeURIComponent("Almacenamiento")}`}>Almacenamiento</Link></li>
           </ul>
         </div>
 

@@ -2,10 +2,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/components/SideMenu.css';
+import { categoriaService } from '../services/categoriaService';
 
 const SideMenu = ({ isOpen, onClose }) => {
+  const [categorias, setCategorias] = useState([]);
+  const [categoryStatus, setCategoryStatus] = useState('loading');
   const [currentTheme, setCurrentTheme] = useState('light');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    categoriaService.getAll().then(data => {
+      if (!Array.isArray(data)) throw new Error('Categorías inválidas');
+      if (!cancelled) { setCategorias(data.filter(cat => !cat.deletedAt)); setCategoryStatus('ready'); }
+    }).catch(() => { if (!cancelled) setCategoryStatus('error'); });
+    return () => { cancelled = true; };
+  }, [isOpen]);
 
   // Bloquear scroll cuando el menú está abierto
   useEffect(() => {
@@ -43,20 +56,6 @@ const SideMenu = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const categorias = [
-    { id: 1, nombre: 'Gabinetes', icon: '🖥️' },
-    { id: 2, nombre: 'Memorias Para Pc', icon: '💾' },
-    { id: 3, nombre: 'Teclados', icon: '⌨️' },
-    { id: 4, nombre: 'Placas De Video', icon: '🎮' },
-    { id: 5, nombre: 'Mouse', icon: '🖱️' },
-    { id: 6, nombre: 'Monitores', icon: '🖥️' },
-    { id: 7, nombre: 'Fuentes', icon: '⚡' },
-    { id: 8, nombre: 'Almacenamiento', icon: '💿' },
-    { id: 9, nombre: 'Procesadores', icon: '🧠' },
-    { id: 10, nombre: 'Placas Madre', icon: '🔌' },
-    { id: 11, nombre: 'Auriculares', icon: '🎧' },
-  ];
-
   const categoriasFiltradas = categorias.filter(cat =>
     cat.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -75,10 +74,10 @@ const SideMenu = ({ isOpen, onClose }) => {
 
   return (
     <div className="side-menu-overlay" onClick={handleOverlayClick}>
-      <div className={`side-menu ${currentTheme === 'dark' ? 'dark' : 'light'}`}>
+      <div id="category-menu" className={`side-menu ${currentTheme === 'dark' ? 'dark' : 'light'}`}>
         <div className="side-menu-header">
           <h3>Categorías</h3>
-          <button className="side-menu-close" onClick={handleClose}>✕</button>
+          <button className="side-menu-close" aria-label="Cerrar categorías" onClick={handleClose}>✕</button>
         </div>
 
         <div className="side-menu-body">
@@ -93,6 +92,9 @@ const SideMenu = ({ isOpen, onClose }) => {
           </div>
 
           <div className="side-menu-categories">
+            {categoryStatus === 'loading' && <p role="status">Cargando categorías...</p>}
+            {categoryStatus === 'error' && <p role="status">No se pudieron cargar las categorías. Podés abrir el catálogo completo.</p>}
+            {categoryStatus === 'ready' && categoriasFiltradas.length === 0 && <p>No hay categorías para esta búsqueda.</p>}
             {categoriasFiltradas.map((categoria) => (
               <Link
                 key={categoria.id}
@@ -100,7 +102,7 @@ const SideMenu = ({ isOpen, onClose }) => {
                 className="side-menu-category-item"
                 onClick={handleClose}
               >
-                <span className="side-menu-category-icon">{categoria.icon}</span>
+                <span className="side-menu-category-icon">{'▦'}</span>
                 <span className="side-menu-category-name">{categoria.nombre}</span>
               </Link>
             ))}

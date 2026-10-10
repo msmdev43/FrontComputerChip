@@ -1,6 +1,6 @@
 // C:\xampp\htdocs\FrontComputerChip\src\components\Navbar.jsx
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext'; 
 import logoAbierto from '../assets/LogoComputerChip.png'
 import logoCerrado from '../assets/LogoComputerChipOjosCerrados.png'
@@ -12,7 +12,15 @@ import SideMenu from './SideMenu';
 import '../styles/components/Navbar.css'
 
 function Navbar() {
-  const { getItemCount } = useCart(); 
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const query = new FormData(event.currentTarget).get('q').trim();
+    navigate(query ? `/productos?${new URLSearchParams({ q: query })}` : '/productos');
+    setIsMenuOpen(false);
+  };
+  const { getItemCount, openCart } = useCart(); 
   const itemCount = getItemCount();
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
 
@@ -33,12 +41,12 @@ function Navbar() {
           </Link>
 
           {/* Barra de búsqueda central */}
-          <div className="cc-search-wrap">
-            <input type="text" placeholder="Buscar en ComputerChip..." className="cc-search-input" />
-            <button className="cc-search-btn">
+          <form className="cc-search-wrap" role="search" onSubmit={submitSearch}>
+            <input key={params.get("q") || ""} name="q" type="search" defaultValue={params.get("q") || ""} aria-label="Buscar productos" placeholder="Buscar en ComputerChip..." className="cc-search-input" />
+            <button type="submit" className="cc-search-btn" aria-label="Buscar">
               <img src={searchGato} className="cc-search-icon" alt="Buscar" />
             </button>
-          </div>
+          </form>
 
           {/* Acciones de usuario */}
           <div className="cc-user-actions">
@@ -47,7 +55,12 @@ function Navbar() {
               <span>Ingresar</span>
             </Link>
             
-            <Link to="/carrito" className="cc-action cc-action-cart">
+            <Link to="/carrito" className="cc-action cc-action-cart" aria-label={`Abrir carrito, ${itemCount} productos`}
+              aria-haspopup="dialog" onClick={event => {
+                if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+                  event.preventDefault(); openCart();
+                }
+              }}>
               <img src={carritoEmoji} className="cc-action-icon" alt="Carrito" />
               <span>Carrito</span>
               {itemCount > 0 && (
@@ -62,7 +75,7 @@ function Navbar() {
         </div>
 
         <nav className="cc-header-bottom">
-          <button className="cc-products-btn" onClick={toggleMenu}>☰ Productos</button>
+          <button className="cc-products-btn" onClick={toggleMenu} aria-expanded={isMenuOpen} aria-controls="category-menu">☰ Productos</button>
           <ul className="cc-nav-links">
             <li><NavLink to="/" className={linkClass} end>Inicio</NavLink></li>
             <li><NavLink to="/productos" className={linkClass}>Productos</NavLink></li>

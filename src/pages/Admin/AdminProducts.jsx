@@ -1,11 +1,13 @@
 // src/pages/Admin/AdminProducts.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import { productoService } from '../../services/productoService';
 import { categoriaService } from '../../services/categoriaService';
+import { especificacionService } from '../../services/especificacionService';
 import { marcaService } from '../../services/marcaService';
 import { formatPrice } from '../../config/currency';
+import { formValues, serverError, specificationIds } from '../../utils/adminProductForm';
 import '../../styles/Spinner.css';
 import '../../styles/admin/AdminProducts.css';
 
@@ -14,7 +16,6 @@ import '../../styles/admin/AdminProducts.css';
 // ============================================
 const INITIAL_FORM_DATA = {
   nombre: '',
-  descripcion: '',
   precio: '',
   precioOferta: '',
   stock: true,
@@ -22,7 +23,8 @@ const INITIAL_FORM_DATA = {
   envioGratis: true,
   codigoSerie: '',
   categoriaIds: [],
-  marcaIds: []
+  marcaIds: [],
+  especificacionIds: []
 };
 
 const STATUS_OPTIONS = [
@@ -45,7 +47,11 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [specifications, setSpecifications] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [openingModal, setOpeningModal] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const openingRef = useRef(false);
 
   // ===== LOAD DATA =====
   const loadProducts = useCallback(async () => {
@@ -114,7 +120,7 @@ const AdminProducts = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
     try {
-      await productoService.delete(id);
+      await productoService.softDelete(id);
       await loadProducts();
     } catch (err) {
       console.error('Error al eliminar producto:', err);
@@ -136,10 +142,10 @@ const AdminProducts = () => {
   const handleSaveProduct = async (formData) => {
     try {
       setSubmitting(true);
+      setSaveError('');
       
       const productData = {
         nombre: formData.nombre,
-        descripcion: formData.descripcion || '',
         precio: parseFloat(formData.precio),
         precioOferta: formData.precioOferta ? parseFloat(formData.precioOferta) : null,
         stock: Boolean(formData.stock),
@@ -148,11 +154,10 @@ const AdminProducts = () => {
         codigoSerie: formData.codigoSerie || null,
         categoriaIds: formData.categoriaIds || [],
         marcaIds: formData.marcaIds || [],
-        especificacionIds: [],
-        atributos: []
+        especificacionIds: formData.especificacionIds || []
       };
 
-      console.log('📦 Enviando al backend:', JSON.stringify(productData, null, 2));
+
 
       if (editingProduct) {
         await productoService.update(editingProduct.id, productData);
@@ -166,11 +171,7 @@ const AdminProducts = () => {
     } catch (err) {
       console.error('Error al guardar producto:', err);
       console.error('Respuesta del servidor:', err.response?.data);
-      const errorMsg = err.response?.data?.Error || 
-                       err.response?.data?.message || 
-                       err.response?.data?.title ||
-                       'Error al guardar el producto';
-      alert(errorMsg);
+      setSaveError(serverError(err));
     } finally {
       setSubmitting(false);
     }
@@ -182,15 +183,38 @@ const AdminProducts = () => {
     setFilterStatus('all');
   };
 
-  const openCreateModal = () => {
-    setEditingProduct(null);
-    setShowModal(true);
+  const openProductModal = async (product = null) => {
+    if (openingRef.current) return;
+    openingRef.current = true;
+    setOpeningModal(true);
+    setSaveError('');
+    setError(null);
+    try {
+      const [detail, cats, items, specs, assignedSpecs] = await Promise.all([
+        product ? productoService.getById(product.id) : Promise.resolve(null),
+        categoriaService.getAll(), marcaService.getAll(),
+        especificacionService.getAll(),
+        product ? especificacionService.getByProducto(product.id) : Promise.resolve([]),
+      ]);
+      if (!Array.isArray(cats) || !Array.isArray(items) || (product && !detail)) {
+        throw new Error('No se pudo cargar el detalle completo del producto.');
+      }
+      if (!Array.isArray(specs)) throw new Error('No se pudo cargar el catálogo de especificaciones.');
+      const selectedSpecs = specificationIds(assignedSpecs, specs);
+      setSpecifications(specs);
+      setCategories(cats);
+      setBrands(items);
+      setEditingProduct(detail ? { ...detail, id: detail.id ?? product.id, especificacionIds: selectedSpecs } : null);
+      setShowModal(true);
+    } catch (err) {
+      setError(err.response ? serverError(err) : err.message || 'No se pudo abrir el formulario.');
+    } finally {
+      openingRef.current = false;
+      setOpeningModal(false);
+    }
   };
-
-  const openEditModal = (product) => {
-    setEditingProduct(product);
-    setShowModal(true);
-  };
+  const openCreateModal = () => openProductModal();
+  const openEditModal = product => openProductModal(product);
 
   // ===== HELPERS =====
   const hasStock = (stock) => Boolean(stock);
@@ -249,7 +273,7 @@ const AdminProducts = () => {
           <div className="admin-page-content">
             <div className="page-header">
               <h2>📦 Lista de Productos</h2>
-              <button className="btn-primary" onClick={openCreateModal}>
+              <button className="btn-primary" onClick={openCreateModal} disabled={openingModal}>
                 ➕ Agregar Producto
               </button>
             </div>
@@ -272,7 +296,7 @@ const AdminProducts = () => {
                   onChange={(e) => setFilterCategory(e.target.value)}
                 >
                   <option value="all">📂 Todas las categorías</option>
-                  {categories.map(cat => (
+                {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.nombre}
                     </option>
@@ -299,6 +323,7 @@ const AdminProducts = () => {
               </div>
             </div>
             
+            {openingModal && <p role="status">Cargando formulario del producto...</p>}
             {error && (
               <div className="error-message">
                 <p>⚠️ {error}</p>
@@ -351,7 +376,7 @@ const AdminProducts = () => {
                         </td>
                         <td>
                           <div className="action-buttons">
-                            <button className="btn-action btn-action-edit" onClick={() => openEditModal(product)} title="Editar producto">✏️</button>
+                            <button className="btn-action btn-action-edit" onClick={() => openEditModal(product)} disabled={openingModal} title="Editar producto">✏️</button>
                             {isActive(product) ? (
                               <button className="btn-action btn-action-delete" onClick={() => handleDelete(product.id)} title="Eliminar producto">🗑️</button>
                             ) : (
@@ -380,13 +405,16 @@ const AdminProducts = () => {
         <ProductModal
           product={editingProduct}
           onClose={() => {
+            if (submitting) return;
             setShowModal(false);
             setEditingProduct(null);
           }}
           onSave={handleSaveProduct}
           categories={categories}
           brands={brands}
+          specifications={specifications}
           submitting={submitting}
+          saveError={saveError}
         />
       )}
     </div>
@@ -396,35 +424,18 @@ const AdminProducts = () => {
 // ============================================
 // PRODUCT MODAL 
 // ============================================
-const ProductModal = ({ product, onClose, onSave, categories, brands, submitting }) => {
-  const [formData, setFormData] = useState(() => {
-    if (product) {
-      const rawPrice = typeof product.precio === 'string' 
-        ? product.precio.replace(/[^0-9.]/g, '') 
-        : product.precio;
-
-      const rawPriceOferta = typeof product.precioOferta === 'string' 
-        ? product.precioOferta.replace(/[^0-9.]/g, '') 
-        : product.precioOferta;
-
-      const categoriaIds = product.categorias?.map(c => c.id) || [];
-      const marcaIds = product.marcas?.map(m => m.id) || [];
-
-      return {
-        nombre: product.nombre || '',
-        descripcion: product.descripcion || '',
-        precio: rawPrice || '',
-        precioOferta: rawPriceOferta || '',
-        stock: typeof product.stock === 'boolean' ? product.stock : Boolean(product.stock),
-        garantia: product.garantia || '12 meses',
-        envioGratis: product.envioGratis !== undefined ? Boolean(product.envioGratis) : true,
-        codigoSerie: product.codigoSerie || '',
-        categoriaIds: categoriaIds,
-        marcaIds: marcaIds
-      };
-    }
-    return INITIAL_FORM_DATA;
-  });
+const ProductModal = ({ product, onClose, onSave, categories, brands, specifications, submitting, saveError }) => {
+  const [formData, setFormData] = useState(() => product
+    ? formValues(product, categories, brands)
+    : { ...INITIAL_FORM_DATA, categoriaIds: [], marcaIds: [], especificacionIds: [] });
+  const getDiscount = (price, offer) => Number(price) > 0 && offer !== '' && offer != null && Number(offer) > 0 && Number(offer) < Number(price)
+    ? Math.round((1 - Number(offer) / Number(price)) * 10000) / 100 : '';
+  const [discount, setDiscount] = useState(() => getDiscount(product?.precio, product?.precioOferta));
+  const [priceMode, setPriceMode] = useState('amount');
+  const calculateOffer = (price, percent) => Number(price) > 0 && percent !== '' && Number(percent) > 0 && Number(percent) < 100
+    ? (Math.round(Number(price) * (1 - Number(percent) / 100) * 100) / 100).toFixed(2) : '';
+  const [specSearch, setSpecSearch] = useState('');
+  const filteredSpecs = specifications.filter(spec => `${spec.titulo || ''} ${spec.descripcion || ''}`.toLocaleLowerCase('es').includes(specSearch.toLocaleLowerCase('es').trim()));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -434,8 +445,13 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
       return;
     }
 
-    if (!formData.precio || parseFloat(formData.precio) <= 0) {
+    if (!Number.isFinite(Number(formData.precio)) || Number(formData.precio) <= 0) {
       alert('El precio debe ser mayor a 0');
+      return;
+    }
+
+    if (formData.precioOferta !== '' && (!Number.isFinite(Number(formData.precioOferta)) || Number(formData.precioOferta) <= 0 || Number(formData.precioOferta) >= Number(formData.precio))) {
+      alert('El precio de oferta debe ser mayor a 0 y menor al precio original.');
       return;
     }
 
@@ -454,6 +470,17 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'precioOferta') {
+      setPriceMode('amount');
+      setDiscount(getDiscount(formData.precio, value));
+    }
+    if (name === 'precio') {
+      if (priceMode === 'percent') {
+        setFormData(prev => ({ ...prev, precio: value, precioOferta: calculateOffer(value, discount) }));
+        return;
+      }
+      setDiscount(getDiscount(value, formData.precioOferta));
+    }
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -492,6 +519,7 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
         </div>
 
         <form onSubmit={handleSubmit}>
+          {saveError && <div className="error-message" role="alert" style={{ whiteSpace: 'pre-line' }}>{saveError}</div>}
           {/* Nombre - Ocupa todo el ancho */}
           <div className="form-group">
             <label>Nombre del Producto *</label>
@@ -506,31 +534,62 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
             />
           </div>
 
-          {/* Descripción - Ocupa todo el ancho */}
-          <div className="form-group">
-            <label>Descripción</label>
-            <textarea
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleChange}
-              placeholder="Descripción detallada del producto..."
-              rows="4"
-              disabled={submitting}
-            />
-          </div>
-          
+          <fieldset className="product-spec-picker" disabled={submitting}>
+            <legend>Especificaciones del producto</legend>
+            <p>Armá la ficha técnica seleccionando las características del producto.</p>
+            <div className="product-spec-picker__selected" aria-label="Especificaciones seleccionadas">
+              {formData.especificacionIds.map(id => {
+                const spec = specifications.find(item => Number(item.id) === id);
+                return <div className="product-spec-picker__chip" key={id}>
+                  <span><strong>{spec?.titulo || `Especificación #${id}`}</strong><small>{spec?.descripcion || 'Asignada actualmente'}</small></span>
+                  <button type="button" aria-label={`Quitar ${spec?.titulo || `especificación ${id}`}`} onClick={() => setFormData(prev => ({ ...prev, especificacionIds: prev.especificacionIds.filter(value => value !== id) }))}>×</button>
+                </div>;
+              })}
+              {!formData.especificacionIds.length && <p className="product-spec-picker__empty">Todavía no agregaste especificaciones.</p>}
+            </div>
+            <details className="product-spec-picker__catalog">
+              <summary><span>＋ Agregar o cambiar especificaciones</span><span className="product-spec-picker__count">{formData.especificacionIds.length} seleccionadas</span></summary>
+              <div className="product-spec-picker__body">
+            <input type="search" aria-label="Buscar especificaciones" placeholder="Buscar por título o contenido..."
+              value={specSearch} onChange={event => setSpecSearch(event.target.value)} />
+
+            <div className="product-spec-picker__list">
+              {formData.especificacionIds.filter(id => !specifications.some(spec => Number(spec.id) === id)).map(id => (
+                <label className="product-spec-picker__option" key={id}>
+                  <input type="checkbox" checked onChange={() => setFormData(prev => ({ ...prev,
+                    especificacionIds: prev.especificacionIds.filter(value => value !== id) }))} />
+                  <span>Especificación #{id} (asignada actualmente)</span>
+                </label>
+              ))}
+              {filteredSpecs.map(spec => (
+                <label className="product-spec-picker__option" key={spec.id}>
+                  <input type="checkbox" checked={formData.especificacionIds.includes(Number(spec.id))}
+                    onChange={event => {
+                      const checked = event.target.checked;
+                      setFormData(prev => ({ ...prev, especificacionIds: checked
+                        ? [...new Set([...prev.especificacionIds, Number(spec.id)])]
+                        : prev.especificacionIds.filter(id => id !== Number(spec.id)) }));
+                    }} />
+                  <span><strong>{spec.titulo || `Especificación #${spec.id}`}</strong><small>{spec.descripcion}</small></span>
+                </label>
+              ))}
+              {specifications.length === 0 && <p>No hay especificaciones creadas todavía.</p>}
+              {specifications.length > 0 && filteredSpecs.length === 0 && <p>No se encontraron coincidencias. Probá otra búsqueda.</p>}
+            </div>
+            <p className="product-spec-picker__hint">¿Falta una característica? Creala desde la sección Especificaciones del administrador.</p>
+              </div>
+            </details>
+          </fieldset>
+
           {/* Precios - 2 columnas */}
           <div className="form-row">
             <div className="form-group">
               <label>Precio * (ARS)</label>
               <input
-                type="text"
+                type="number" min="0" step="0.01"
                 name="precio"
                 value={formData.precio}
-                onChange={(e) => {
-                  const rawValue = e.target.value.replace(/\D/g, '');
-                  setFormData(prev => ({ ...prev, precio: rawValue }));
-                }}
+                onChange={handleChange}
                 required
                 placeholder="Ej: 199999"
                 disabled={submitting}
@@ -545,13 +604,10 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
             <div className="form-group">
               <label>Precio en Oferta (ARS)</label>
               <input
-                type="text"
+                type="number" min="0" step="0.01"
                 name="precioOferta"
                 value={formData.precioOferta}
-                onChange={(e) => {
-                  const rawValue = e.target.value.replace(/\D/g, '');
-                  setFormData(prev => ({ ...prev, precioOferta: rawValue }));
-                }}
+                onChange={handleChange}
                 placeholder="Ej: 149999"
                 disabled={submitting}
               />
@@ -560,6 +616,28 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
                   {formatPriceDisplay(formData.precioOferta)} ARS
                 </small>
               )}
+            </div>
+          </div>
+
+          <div className="product-discount-panel">
+            <div className="form-group">
+              <label htmlFor="product-discount">Descuento (%)</label>
+              <input id="product-discount" name="descuentoPorcentaje" type="number" min="0" max="99.99" step="0.01"
+                value={discount} placeholder="Ej: 15" disabled={submitting}
+                onChange={event => {
+                  const value = event.target.value;
+                  setPriceMode('percent');
+                  setDiscount(value);
+                  setFormData(prev => ({ ...prev, precioOferta: calculateOffer(prev.precio, value) }));
+                }} />
+              <small className="help-text">Escribí un porcentaje o editá el precio de oferta. Con 0 o vacío, se quita la oferta.</small>
+            </div>
+            <div className="product-discount-summary" aria-live="polite">
+              {Number(formData.precioOferta) > 0 && Number(formData.precioOferta) < Number(formData.precio) ? <>
+                <span>Precio final de oferta</span>
+                <strong>{formatPriceDisplay(formData.precioOferta)} ARS</strong>
+                <small>Ahorro: {formatPriceDisplay(Math.round((Number(formData.precio) - Number(formData.precioOferta)) * 100) / 100)} ARS</small>
+              </> : <><span>Sin oferta aplicada</span><small>Cargá el precio original y el descuento para calcular el precio final.</small></>}
             </div>
           </div>
 
@@ -635,6 +713,7 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
                 className="select-multiple"
                 required
               >
+                {formData.marcaIds.filter(id => !brands.some(item => Number(item.id) === id)).map(id => <option key={id} value={id}>Marca #{id} (actual)</option>)}
                 {brands.map(brand => (
                   <option key={brand.id} value={brand.id}>
                     {brand.nombre}
@@ -660,6 +739,7 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, submitting
                 className="select-multiple"
                 required
               >
+                {formData.categoriaIds.filter(id => !categories.some(item => Number(item.id) === id)).map(id => <option key={id} value={id}>Categoría #{id} (actual)</option>)}
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
                     {cat.nombre}

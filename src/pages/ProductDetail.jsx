@@ -4,11 +4,14 @@ import { productoService } from '../services/productoService';
 import { useCart } from '../context/CartContext';
 import ShareModal from '../components/ShareModal';
 import '../styles/ProductDetail.css';
+import { createSlug } from '../utils/slugUtils';
+import { formatPrice } from '../config/currency';
+import { normalizeProduct, getProductPricing } from '../utils/productUtils';
 
 function ProductDetail() {
   const { id, slug } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,13 +54,13 @@ function ProductDetail() {
         return;
       }
 
-      setProduct(data);
+      setProduct(normalizeProduct(data));
 
       // Cargar productos relacionados
       try {
         const related = await productoService.getRelated(productId);
-        console.log('Productos relacionados recibidos:', related); // ✅ debug
-        setRelatedProducts(related || []);
+        
+        setRelatedProducts((related || []).filter(p => !p.deletedAt).map(normalizeProduct));
       } catch (err) {
         console.warn('No se pudieron cargar productos relacionados:', err);
       }
@@ -80,76 +83,26 @@ function ProductDetail() {
   }, [loadProduct]);
 
   // ===== HELPERS =====
-  const createSlug = (text) => {
-    if (!text) return '';
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-  };
-
-  const formatPrice = (price) => {
-    if (price === undefined || price === null || isNaN(price)) {
-      return '$0';
-    }
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
   // ===== HANDLERS =====
-  const handleAddToCart = () => {
-    if (!product) return;
+  const cartQuantity = cartItems.find(item => String(item.id) === String(product?.id))?.cantidad || 0;
+  const remainingStock = Math.max(0, (product?.stock || 0) - cartQuantity);
+  const MAX_QUANTITY = Math.min(10, remainingStock);
+  const selectedQuantity = Math.min(quantity, MAX_QUANTITY);
 
-    const productForCart = {
-      id: product.id,
-      nombre: product.nombre,
-      precio: product.oferta?.precioOferta || product.precio,
-      marca: product.marca?.nombre || product.marca || 'N/A',
-      categoria: product.categoria?.nombre || product.categoria || 'N/A',
-      stock: product.stock || 0,
-      envioGratis: product.envioGratis || 0,
-      imagen: product.imagenes?.length > 0 ? product.imagenes[0].url : '/images/product-placeholder.webp',
-      oferta: product.oferta ? {
-        precioOriginal: product.oferta.precioOriginal || product.precio,
-        precioOferta: product.oferta.precioOferta || product.precio,
-        descuento: product.oferta.descuento || 0
-      } : null
-    };
-
-    addToCart(productForCart, quantity);
+  const handleAddToCart = (openDrawer = true) => {
+    if (!product || selectedQuantity < 1) return false;
+    if (!addToCart(product, selectedQuantity, { openDrawer })) return false;
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
+    return true;
   };
-
   const handleBuyNow = () => {
-    if (!product) return;
-    handleAddToCart();
-    setTimeout(() => {
-      navigate('/carrito');
-    }, 500);
+    if (handleAddToCart(false)) navigate('/carrito');
   };
-
-  const MAX_QUANTITY = 10; // Límite máximo de cantidad
-
-  const changeQuantity = (delta) => {
-
-    if (!product?.stock) return;
-
-    setQuantity((prev) => {
-      const next = prev + delta;
-      if (next < 1) return 1;
-      if (next > MAX_QUANTITY) return MAX_QUANTITY;
-      return next;
-    });
-
-    if (addedToCart) setAddedToCart(false);
+  const changeQuantity = delta => {
+    if (MAX_QUANTITY < 1) return;
+    setQuantity(Math.max(1, Math.min(MAX_QUANTITY, selectedQuantity + delta)));
+    setAddedToCart(false);
   };
 
   const handleShare = () => {
@@ -214,27 +167,19 @@ function ProductDetail() {
   // ===== RENDER: PRODUCT =====
   const {
     nombre,
-    precio,
     garantia,
     stock,
     envioGratis,
     codigoSerie,
     marca,
     categoria,
-    oferta,
     imagenes = [],
     especificaciones = [],
     atributos = [],
     preguntas = []
   } = product;
 
-  const hasOffer = oferta !== null && oferta !== undefined && oferta.precioOferta > 0;
-  const originalPrice = hasOffer ? oferta.precioOriginal : precio;
-  const discountedPrice = hasOffer ? oferta.precioOferta : precio;
-  const savings = hasOffer ? (originalPrice - discountedPrice) : 0;
-  const discountPercent = hasOffer && originalPrice > 0
-    ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
-    : 0;
+  const { hasOffer, originalPrice, price: discountedPrice, savings, discountPercent } = getProductPricing(product);
 
   const inStock = stock > 0;
   const brandName = marca?.nombre || marca || 'N/A';
@@ -346,20 +291,20 @@ function ProductDetail() {
               <div className="detail-actions-container">
                 {inStock && (
                   <div className="detail-action-row">
-                    <div className="detail-quantity-selector">
-                      <span>Cantidad</span>
+                    <div className="detail-quantity-selector" role="group" aria-label="Cantidad de unidades">
+                      <span className="detail-quantity-label">Cantidad</span>
                       <div className="detail-quantity-controls">
-                        <button onClick={() => changeQuantity(-1)} disabled={!inStock || quantity <= 1}>−</button>
-                        <span className="detail-quantity-value">{quantity}</span>
-                        <button onClick={() => changeQuantity(1)} disabled={!inStock || quantity >= MAX_QUANTITY}>+</button>
+                        <button aria-label="Reducir cantidad" onClick={() => changeQuantity(-1)} disabled={!inStock || selectedQuantity <= 1}>−</button>
+                        <span className="detail-quantity-value">{selectedQuantity || 0}</span>
+                        <button aria-label="Aumentar cantidad" onClick={() => changeQuantity(1)} disabled={!inStock || selectedQuantity >= MAX_QUANTITY}>+</button>
                       </div>
                     </div>
                     <button
                       className={`detail-add-to-cart-btn ${addedToCart ? 'added' : ''}`}
-                      onClick={handleAddToCart}
-                      disabled={!inStock}
+                      onClick={() => handleAddToCart()}
+                      disabled={!inStock || remainingStock < 1}
                     >
-                      {addedToCart ? '✅ AGREGADO' : (inStock ? 'AGREGAR AL CARRITO' : 'SIN STOCK')}
+                      {addedToCart ? '✅ AGREGADO' : (remainingStock < 1 ? 'STOCK EN TU CARRITO' : 'AGREGAR AL CARRITO')}
                     </button>
                   </div>
                 )}
@@ -367,12 +312,13 @@ function ProductDetail() {
                 <button
                   className="detail-buy-now-btn"
                   onClick={handleBuyNow}
-                  disabled={!inStock}
+                  disabled={!inStock || remainingStock < 1}
                 >
                   COMPRAR
                 </button>
               </div>
 
+              {inStock && remainingStock === 0 && <p role="status">Ya tenés todas las unidades disponibles en tu carrito. <Link to="/carrito">Ver carrito</Link></p>}
               {/* SKU */}
               {codigoSerie && (
                 <div className="detail-sku-container">
@@ -464,10 +410,9 @@ function ProductDetail() {
           {/* Productos relacionados */}
           {relatedProducts.length > 0 && (
             <div className="detail-related-products">
-              <h3>🛒 Productos relacionados</h3>
+              <h3>Productos relacionados</h3>
               <div className="detail-related-grid">
                 {relatedProducts.slice(0, 4).map((relProduct) => {
-                  // ✅ Soporta id o _id
                   const relId = relProduct.id ?? relProduct._id;
                   return (
                     <div
@@ -490,7 +435,7 @@ function ProductDetail() {
                         onError={(e) => { e.target.src = '/images/product-placeholder.webp'; }}
                       />
                       <span className="detail-related-name">{relProduct.nombre}</span>
-                      <span className="detail-related-price">{formatPrice(relProduct.precio)}</span>
+                      <span className="detail-related-price">{formatPrice(getProductPricing(relProduct).price)}</span>
                     </div>
                   );
                 })}

@@ -6,7 +6,7 @@ export const CURRENCY = {
 };
 
 export const formatPrice = (price) => {
-  if (!price && price !== 0) return '$0';
+  if (price == null || !Number.isFinite(Number(price))) return '$0';
   return new Intl.NumberFormat(CURRENCY.locale, {
     style: 'currency',
     currency: CURRENCY.currency,

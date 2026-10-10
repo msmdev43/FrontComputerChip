@@ -4,8 +4,10 @@ import { AdminProvider } from './context/AdminContext'
 import { CartProvider } from './context/CartContext' 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import CartDrawer from './components/CartDrawer'
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
+import NotFound from './components/NotFound'
 import Productos from './pages/Productos'
 import ProductDetail from './pages/ProductDetail'
 import Ofertas from './pages/Ofertas'        
@@ -15,6 +17,7 @@ import Register from './pages/Register'
 import Cart from './pages/Cart'
 import ArmaTuPc from './pages/ArmaTuPc'
 import AdminRoutes from './routes/AdminRoutes'
+import BackToTop from './components/BackToTop';
 import './App.css'
 
 function App() {
@@ -23,6 +26,7 @@ function App() {
       <CartProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <CartDrawer />
           <Routes>
             <Route path="/admin/*" element={<AdminRoutes />} />
             
@@ -42,10 +46,12 @@ function App() {
                       <Route path="/registro" element={<Register />} />
                       <Route path="/carrito" element={<Cart />} />
                       <Route path="/armatupc" element={<ArmaTuPc />} />
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
                   </div>
                 </div>
                 <Footer />
+                <BackToTop />
               </div>
             } />
           </Routes>

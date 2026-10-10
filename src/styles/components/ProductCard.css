@@ -338,3 +338,18 @@
     font-size: 0.65rem;
   }
 }
+/* Tarjetas accesibles con enlace nativo y contenido alineado. */
+a.pc-card { display: flex; flex-direction: column; min-width: 0; height: 100%; text-decoration: none; color: var(--text-h); border: 1px solid var(--border); border-radius: 14px; background: var(--bg); overflow: hidden; position: relative; }
+a.pc-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.pc-card .pc-name { color: var(--text-h); overflow-wrap: anywhere; }
+.pc-card .pc-brand { color: var(--text); }
+.pc-card .pc-discounted-price:only-child { color: var(--text-h); }
+.pc-card .pc-prices { margin-top: auto; margin-bottom: 6px; }
+.pc-card .pc-hint { opacity: 1; margin-top: 12px; padding-top: 12px; }
+.pc-savings-text { text-align: center; font-size: .7rem; color: var(--accent); margin-bottom: 6px; }
+.pc-stock { text-align: center; font-size: .7rem; color: var(--text); }
+.pc-stock--available { color: var(--text-h); }
+.pc-stock--available::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #28a66b; margin-right: 6px; vertical-align: middle; }
+.pc-image-unavailable { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; color: var(--text); font-size: .8rem; text-align: center; }
+@media (max-width: 480px) { .pc-discount-badge { top: 8px; right: 8px; padding: 3px 6px; font-size: .65rem; } .pc-card .pc-info { padding: 10px; } }
+@media (prefers-reduced-motion: reduce) { .pc-skeleton-shimmer { animation: none; } }

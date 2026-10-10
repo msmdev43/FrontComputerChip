@@ -606,3 +606,6 @@
     font-size: 0.7rem;
   }
 }
+/* Contador visible también cuando se ocultan las etiquetas en móvil. */
+.cc-action .cc-cart-badge { display: inline-flex; align-items: center; justify-content: center; }
+.cc-search-wrap:focus-within { outline: 2px solid var(--cc-accent); outline-offset: 3px; }

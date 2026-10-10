@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { productoService } from '../services/productoService';
-import BackToTop from '../components/BackToTop';
 import '../styles/Home.css';
+import { normalizeProduct } from '../utils/productUtils';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -23,11 +23,11 @@ const Home = () => {
       // Cargar productos en paralelo para mejor rendimiento
       const [featured, newItems, saleItems] = await Promise.all([
         // Productos destacados (los primeros 4)
-        productoService.getAll().then(data => data.slice(0, 4)),
+        productoService.getAll().then(data => data.filter(p => !p.deletedAt).slice(0, 4).map(normalizeProduct)),
         // Productos nuevos (últimos 4)
-        productoService.getNewProducts(7).then(data => data.slice(0, 4)),
+        productoService.getNewProducts(7).then(data => data.filter(p => !p.deletedAt).slice(0, 4).map(normalizeProduct)),
         // Productos en oferta
-        productoService.getOnSale().then(data => data.slice(0, 4))
+        productoService.getOnSale().then(data => data.filter(p => !p.deletedAt).slice(0, 4).map(normalizeProduct))
       ]);
 
       // Filtrar productos activos (no eliminados)
@@ -216,12 +216,11 @@ const Home = () => {
             <h3>¿Necesitas ayuda con tu PC?</h3>
             <p>Ofrecemos servicio técnico especializado para computadoras, notebooks y consolas.</p>
             <Link to="/contacto" className="cta-btn">
-              📞 Contáctanos
+              Contáctanos
             </Link>
           </div>
         </section>
       </div>
-      <BackToTop />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { productoService } from '../services/productoService';
 import '../styles/Ofertas.css';
+import { normalizeProduct, getProductPricing } from '../utils/productUtils';
 
 function Ofertas() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ function Ofertas() {
       setLoading(true);
       setError(null);
       const data = await productoService.getAll();
-      setProducts(data);
+      setProducts(data.map(normalizeProduct));
     } catch (err) {
       console.error('Error al cargar ofertas:', err);
       setError('No se pudieron cargar las ofertas. Intente nuevamente.');
@@ -48,28 +49,9 @@ function Ofertas() {
   };
 
   const getOfferInfo = (product) => {
-    const oferta = product.oferta;
-    const tieneOferta =
-      (oferta && oferta.precioOferta > 0) ||
-      product.descuento > 0 ||
-      product.enOferta === true;
-
-    if (!tieneOferta) return null;
-
-    const precioOriginal =
-      oferta?.precioOriginal || product.precioOriginal || product.precio || 0;
-    const precioOferta =
-      oferta?.precioOferta || product.precioOferta || product.precio || 0;
-
-    const ahorro = Math.max(0, precioOriginal - precioOferta);
-    const descuento =
-      oferta?.descuento ||
-      product.descuento ||
-      (precioOriginal > 0
-        ? Math.round(((precioOriginal - precioOferta) / precioOriginal) * 100)
-        : 0);
-
-    return { precioOriginal, precioOferta, ahorro, descuento };
+    const info = getProductPricing(product);
+    return info.hasOffer ? { precioOriginal: info.originalPrice, precioOferta: info.price,
+      ahorro: info.savings, descuento: info.discountPercent } : null;
   };
 
   // ===== CATEGORÍAS DISPONIBLES =====
@@ -79,7 +61,7 @@ function Ofertas() {
       const info = getOfferInfo(p);
       if (!info || p.deletedAt) return;
       const cat =
-        p.categoria?.nombre ||
+        p.categoria ||
         p.categoriasProductos?.[0]?.categorias?.nombre;
       if (cat) set.add(cat);
     });
@@ -101,7 +83,7 @@ function Ofertas() {
         if (descuento < minDiscount) return false;
 
         const cat =
-          product.categoria?.nombre ||
+          product.categoria ||
           product.categoriasProductos?.[0]?.categorias?.nombre ||
           '';
         if (categoryFilter !== 'all' && cat !== categoryFilter) return false;
@@ -110,7 +92,7 @@ function Ofertas() {
         const term = searchTerm.toLowerCase();
         const nombre = product.nombre?.toLowerCase() || '';
         const marca =
-          product.marca?.nombre?.toLowerCase() ||
+          product.marca?.toLowerCase() ||
           product.productosMarcas?.[0]?.marcas?.nombre?.toLowerCase() ||
           '';
         return (

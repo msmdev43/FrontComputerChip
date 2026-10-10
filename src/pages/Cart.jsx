@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import carritoBlanco from '../assets/CarritoEmojiBlanco.png';
 import carritoNegro from '../assets/CarritoEmojiNegro.png';
 import '../styles/Cart.css';
+import { formatPrice } from '../config/currency';
 
 function Cart() {
   const { 
@@ -36,18 +37,6 @@ function Cart() {
 
     return () => observer.disconnect();
   }, []);
-
-  const formatPrice = (price) => {
-    if (price === undefined || price === null || isNaN(price)) {
-      return '$0';
-    }
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
 
   const { subtotal, envio, total } = getCartTotal();
 
@@ -133,12 +122,15 @@ function Cart() {
                       <button 
                         onClick={() => updateQuantity(item.id, item.cantidad - 1)}
                         disabled={item.cantidad <= 1}
+                        aria-label="Reducir cantidad"
                       >
                         −
                       </button>
                       <span>{item.cantidad}</span>
                       <button 
                         onClick={() => updateQuantity(item.id, item.cantidad + 1)}
+                        disabled={item.cantidad >= item.stock}
+                        aria-label="Aumentar cantidad"
                       >
                         +
                       </button>
@@ -172,7 +164,7 @@ function Cart() {
               </div>
               
               <div className="summary-row">
-                <span>Envío</span>
+                <span>Envío estimado</span>
                 <span>{envio === 0 ? 'Gratis' : formatPrice(envio)}</span>
               </div>
               
@@ -183,14 +175,15 @@ function Cart() {
               )}
 
               <div className="summary-total">
-                <span>Total</span>
+                <span>Total estimado</span>
                 <span>{formatPrice(total)}</span>
               </div>
 
               <div className="summary-actions">
-                <button className="btn-checkout">
+                <button className="btn-checkout" disabled aria-describedby="checkout-status">
                   Ir a Pagar
                 </button>
+                <p id="checkout-status" role="status">La compra online estará disponible próximamente.</p>
                 <button className="btn-clear-cart" onClick={clearCart}>
                   Vaciar Carrito
                 </button>
