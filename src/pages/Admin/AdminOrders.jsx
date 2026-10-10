@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
+import { orderCustomer, orderStatus } from '../../utils/orderUtils';
 import { pedidoService } from '../../services/pedidoService';
 import { formatPrice } from '../../config/currency';
 import '../../styles/Spinner.css';
@@ -57,6 +58,7 @@ const AdminOrders = () => {
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // ===== LOAD ORDERS =====
   const loadOrders = useCallback(async () => {
@@ -64,7 +66,7 @@ const AdminOrders = () => {
       setLoading(true);
       setError(null);
       const data = await pedidoService.getAll();
-      setOrders(data || []);
+      setOrders((data || []).map(order => ({ ...order, estado: orderStatus(order.estado) })));
     } catch (err) {
       console.error('Error al cargar pedidos:', err);
       setError(err.response?.data?.Error || 'Error al cargar los pedidos');
@@ -80,10 +82,7 @@ const AdminOrders = () => {
   // ===== FILTER ORDERS =====
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const customerName = order.usuario?.nombreCompleto || 
-                          order.usuario?.nombre || 
-                          order.cliente || 
-                          '';
+      const customerName = orderCustomer(order);
       
       const matchSearch = 
         customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,6 +114,7 @@ const AdminOrders = () => {
     try {
       setUpdatingStatus(orderId);
       
+      if (newStatus.toLowerCase() === 'cancelado' && !window.confirm('¿Cancelar este pedido?')) return;
       let result;
       switch (newStatus.toLowerCase()) {
         case 'confirmado':
@@ -136,7 +136,7 @@ const AdminOrders = () => {
       }
       
       // Actualizar localmente
-      setOrders(orders.map(order => 
+      setOrders(current => current.map(order => 
         (order.idpedidos === orderId || order.id === orderId) 
           ? { ...order, estado: newStatus } 
           : order
@@ -161,9 +161,16 @@ const AdminOrders = () => {
     }
   };
 
-  const viewOrderDetail = (order) => {
-    setSelectedOrder(order);
-    setShowOrderDetail(true);
+  const viewOrderDetail = async (order) => {
+    if (detailLoading) return;
+    setDetailLoading(true);
+    try {
+      const detail = await pedidoService.getById(order.id);
+      setSelectedOrder({ ...detail, estado: orderStatus(detail.estado) });
+      setShowOrderDetail(true);
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo cargar el detalle del pedido.');
+    } finally { setDetailLoading(false); }
   };
 
   const clearFilters = () => {
@@ -194,12 +201,7 @@ const AdminOrders = () => {
     return STATUS_LABELS[status] || status || 'Pendiente';
   };
 
-  const getCustomerName = (order) => {
-    return order.usuario?.nombreCompleto || 
-           order.usuario?.nombre || 
-           order.cliente || 
-           'Cliente';
-  };
+  const getCustomerName = orderCustomer;
 
   const getOrderId = (order) => {
     return order.idpedidos || order.id;
@@ -380,7 +382,7 @@ const AdminOrders = () => {
                                 onChange={(e) => updateOrderStatus(orderId, e.target.value)}
                                 disabled={isUpdating}
                               >
-                                <option value="Pendiente">Pendiente</option>
+                                <option value="Pendiente" disabled>Pendiente</option>
                                 <option value="Confirmado">Confirmado</option>
                                 <option value="Enviado">Enviado</option>
                                 <option value="Entregado">Entregado</option>
@@ -388,7 +390,7 @@ const AdminOrders = () => {
                               </select>
                               <button 
                                 className="btn-action btn-action-view" 
-                                onClick={() => viewOrderDetail(order)}
+                                disabled={detailLoading} onClick={() => viewOrderDetail(order)}
                                 title="Ver detalles"
                               >
                                 👁️
@@ -463,7 +465,7 @@ const OrderDetailModal = ({
         <div className="order-summary">
           <div className="summary-row">
             <span>Cliente</span>
-            <span>{order.usuario?.nombreCompleto || order.usuario?.nombre || 'Cliente'}</span>
+            <span>{orderCustomer(order)}</span>
           </div>
           <div className="summary-row">
             <span>Fecha</span>
@@ -481,21 +483,26 @@ const OrderDetailModal = ({
           </div>
         </div>
 
-        {order.productos && order.productos.length > 0 && (
+        {order.items && order.items.length > 0 && (
           <div className="order-products">
             <h4>🛒 Productos</h4>
             <div className="order-products-list">
-              {order.productos.map((product, index) => (
+              {order.items.map((product, index) => (
                 <div key={index} className="order-product-item">
-                  <span className="product-name-small">{product.nombre || 'Producto'}</span>
+                  <span className="product-name-small">{product.productoNombre || 'Producto'}</span>
                   <span className="product-qty">x{product.cantidad || 1}</span>
-                  <span className="product-price-small">{formatPrice(product.precio || 0)}</span>
+                  <span className="product-price-small">{formatPrice(product.subtotal ?? (product.precioUnitario * product.cantidad))}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        <div className="order-summary">
+          <p><strong>Pago:</strong> {order.metodoPago || 'No informado'}</p>
+          <p><strong>Zona:</strong> {order.zonaEnvio || 'No informada'}</p>
+          <p><strong>Dirección:</strong> {order.direccionEnvio || 'No informada'}</p>
+        </div>
         <div className="modal-actions">
           <button className="btn-secondary" onClick={onClose}>
             Cerrar

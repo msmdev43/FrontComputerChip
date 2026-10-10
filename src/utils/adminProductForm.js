@@ -33,7 +33,7 @@ export function serverError(error) {
     ? Object.entries(data.errors).flatMap(([field, values]) => list(values).map(value => `${field}: ${value}`)) : [];
   return validation.length ? validation.join('\n') :
     data?.Error || data?.error || data?.message || data?.detail || data?.title ||
-    (typeof data === 'string' ? data : '') || 'No se pudo guardar. Revisá la conexión con el servidor.';
+    (typeof data === 'string' ? data : '') || error.message || 'No se pudo guardar. Revisá la conexión con el servidor.';
 }
 
 export function formValues(product, categories, brands) {

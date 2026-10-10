@@ -36,7 +36,7 @@ const AdminSettings = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     localStorage.setItem('adminSettings', JSON.stringify(settings));
-    setMessage('✅ Configuración guardada exitosamente!');
+    setMessage('Preferencias guardadas en este navegador. No modifican la configuración de la tienda.');
     setTimeout(() => setMessage(''), 3000);
   };
 
@@ -60,7 +60,7 @@ const AdminSettings = () => {
         <div className="admin-content">
           <div className="admin-page-content">
             <div className="settings-container">
-              <h2>⚙️ Configuración General</h2>
+              <h2>⚙️ Preferencias locales</h2><p>Estos valores se guardan solo en este navegador. No cambian impuestos, moneda ni mantenimiento de la tienda.</p>
               
               {message && (
                 <div style={{
@@ -149,27 +149,15 @@ const AdminSettings = () => {
                 <h3>Acciones del Sistema</h3>
                 <div className="action-buttons" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <button className="btn-danger" onClick={() => {
-                    if (confirm('¿Estás seguro de limpiar la caché?')) {
-                      localStorage.clear();
-                      alert('Caché limpiada correctamente');
+                    if (confirm('¿Eliminar las preferencias locales de este navegador?')) {
+                      localStorage.removeItem('adminSettings');
+                      alert('Preferencias locales eliminadas. Recargá la página para ver los valores iniciales.');
                     }
                   }}>
-                    🗑️ Limpiar Caché
+                    🗑️ Borrar preferencias locales
                   </button>
-                  <button className="btn-warning" onClick={() => {
-                    alert('Exportando datos... (simulación)');
-                  }}>
-                    📊 Exportar Datos
-                  </button>
-                  <button className="btn-info" onClick={() => {
-                    alert('📋 Logs del sistema:\n\n' + 
-                          '✅ Sistema operativo: Simulado\n' +
-                          '✅ Versión: 1.0.0\n' +
-                          '✅ Estado: Activo\n' +
-                          '✅ Última actualización: ' + new Date().toLocaleString());
-                  }}>
-                    📋 Ver Logs
-                  </button>
+                  <button className="btn-warning" disabled title="Disponible cuando el servidor implemente exportación">📊 Exportar datos · Próximamente</button>
+                  <button className="btn-info" disabled title="Disponible cuando el servidor implemente registros">📋 Ver registros · Próximamente</button>
                 </div>
               </div>
             </div>

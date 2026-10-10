@@ -121,7 +121,7 @@ export const zonaEnvioService = {
      */
     updateCosto: async (id, costo) => {
         try {
-            const response = await clienteAxios.patch(ENDPOINTS.zonaEnvio.actualizarCosto(id), { costo });
+            const response = await clienteAxios.patch(ENDPOINTS.zonaEnvio.actualizarCosto(id), costo);
             return response.data;
         } catch (error) {
             console.error(`Error al actualizar costo de zona ${id}:`, error);

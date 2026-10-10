@@ -7,7 +7,8 @@ function Contacto() {
         <h1>Contacto</h1>
         <p className="contacto-subtitle">¿Tienes alguna pregunta? Contáctanos</p>
         
-        <form className="contact-form">
+        <p role="status">El envío de consultas desde este formulario estará disponible próximamente.</p>
+        <form className="contact-form" onSubmit={event => event.preventDefault()}>
           <div className="form-group">
             <label htmlFor="nombre">Nombre completo</label>
             <input type="text" id="nombre" placeholder="Tu nombre" />
@@ -23,7 +24,7 @@ function Contacto() {
             <textarea id="mensaje" rows="5" placeholder="¿En qué podemos ayudarte?"></textarea>
           </div>
           
-          <button type="submit" className="submit-btn">Enviar mensaje</button>
+          <button type="submit" className="submit-btn" disabled>Próximamente</button>
         </form>
       </section>
     </div>

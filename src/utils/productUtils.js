@@ -8,6 +8,11 @@ const names = value => (Array.isArray(value) ? value : [value])
 const unique = values => [...new Map(values.map(value => [normalizeText(value), value])).values()];
 const amount = value => value !== '' && value != null && Number.isFinite(Number(value))
   ? Math.max(0, Number(value)) : null;
+// La API actual publica disponibilidad (booleano), no unidades de inventario.
+export const CART_QUANTITY_LIMIT = 99; // Límite de interfaz, no stock informado.
+export const getQuantityLimit = product => getStock(product) <= 0 ? 0 :
+  product?.stockQuantified === false || typeof product?.stock === 'boolean'
+    ? CART_QUANTITY_LIMIT : Math.min(CART_QUANTITY_LIMIT, getStock(product));
 export const getStock = product => Math.floor(amount(product?.stock) ?? 0);
 export const categoryKey = value => {
   const key = normalizeText(value);
@@ -45,6 +50,7 @@ export function normalizeProduct(product = {}) {
   return {
     ...product,
     nombre: product.nombre || 'Producto', stock: getStock(product),
+    stockQuantified: product.stockQuantified ?? (typeof product.stock !== 'boolean'),
     categorias: categories, marcas: brands,
     categoria: categories[0] || '', marca: brands[0] || '',
     imagenes: images, imagen: product.imagen || images[0]?.url || '/images/product-placeholder.webp',

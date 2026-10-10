@@ -1,3 +1,4 @@
+import { orderCustomer, orderStatus } from '../../utils/orderUtils';
 // src/pages/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAdmin } from '../../context/AdminContext';
@@ -95,7 +96,7 @@ const AdminDashboard = () => {
       try {
         const ordersData = await pedidoService.getRecent();
         if (ordersData && Array.isArray(ordersData)) {
-          setRecentOrders(ordersData.slice(0, 5));
+          setRecentOrders(ordersData.slice(0, 5).map(order => ({ ...order, estado: orderStatus(order.estado), usuario: { nombreCompleto: orderCustomer(order) } })));
         }
       } catch (orderError) {
         console.warn('No se pudieron cargar pedidos recientes:', orderError);
@@ -179,7 +180,7 @@ const AdminDashboard = () => {
             title="Panel de Control" 
             subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
           />
-          <div className="admin-content">
+          <div className="admin-content"><p role="status">El servidor todavía devuelve valores provisionales para ventas, stock y otras métricas. Los ceros del resumen no confirman ausencia de actividad.</p>
             <div className="error-message">
               <div className="error-icon">⚠️</div>
               <p>{error}</p>
@@ -214,7 +215,7 @@ const AdminDashboard = () => {
           title="Panel de Control" 
           subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
         />
-        <div className="admin-content">
+        <div className="admin-content"><p role="status">El servidor todavía devuelve valores provisionales para ventas, stock y otras métricas. Los ceros del resumen no confirman ausencia de actividad.</p>
           {/* Stats principales */}
           <AdminStats stats={statsForDisplay} />
           

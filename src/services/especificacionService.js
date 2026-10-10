@@ -55,7 +55,7 @@ export const especificacionService = {
     buscar: async (termino) => {
         try {
             const response = await clienteAxios.get(ENDPOINTS.especificacion.buscar, {
-                params: { q: termino }
+                params: { titulo: termino }
             });
             return response.data;
         } catch (error) {
@@ -120,10 +120,7 @@ export const especificacionService = {
      */
     asignar: async (productoId, especificacionId) => {
         try {
-            const response = await clienteAxios.post(ENDPOINTS.especificacion.asignar, {
-                productoId,
-                especificacionId
-            });
+            const response = await clienteAxios.post(ENDPOINTS.especificacion.asignar, null, { params: { productoId, especificacionId } });
             return response.data;
         } catch (error) {
             console.error('Error al asignar especificación:', error);
@@ -140,7 +137,7 @@ export const especificacionService = {
     eliminarAsignacion: async (productoId, especificacionId) => {
         try {
             const response = await clienteAxios.delete(ENDPOINTS.especificacion.eliminarAsignacion, {
-                data: { productoId, especificacionId }
+                params: { productoId, especificacionId }
             });
             return response.data;
         } catch (error) {

@@ -574,3 +574,4 @@
 .toggle-link:hover {
   text-decoration: underline;
 }
+.google-signin-wrap { display: grid; justify-content: center; margin: 1.5rem 0; }

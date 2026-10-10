@@ -1,3 +1,4 @@
+import { getProductPricing } from '../../utils/productUtils';
 import "../../styles/components/UI/resumenBuild.css";
 
 const formatPrecio = (v) =>
@@ -15,7 +16,7 @@ export default function ResumenBuild({
   const { total, ahorro, cantidad } = Object.entries(seleccion).reduce(
     (acc, [, prod]) => {
       if (!prod) return acc;
-      const precio = Number(prod.precioOferta ?? prod.precio ?? 0);
+      const precio = getProductPricing(prod).price;
       const precioBase = Number(prod.precio ?? 0);
       acc.total += precio;
       if (prod.isOnSale) acc.ahorro += precioBase - precio;
@@ -56,7 +57,7 @@ export default function ResumenBuild({
                       {prod.nombre}
                     </span>
                     <span className="resumen-build__prod-precio">
-                      {formatPrecio(prod.precioOferta ?? prod.precio)}
+                      {formatPrecio(getProductPricing(prod).price)}
                     </span>
                   </div>
                   <button

@@ -474,3 +474,11 @@
 }
 .cart-item-quantity button:disabled, .btn-checkout:disabled { opacity: .5; cursor: not-allowed; }
 #checkout-status { font-size: .8rem; color: var(--text); margin: 10px 0 16px; line-height: 1.5; }
+
+.shipping-quote { margin: 1rem 0; padding: 1rem 0; border-block: 1px solid #8884; }
+.shipping-quote label { display: block; margin-bottom: .5rem; font-weight: 600; }
+.shipping-quote > div { display: flex; gap: .5rem; flex-wrap: wrap; }
+.shipping-quote input { min-width: 0; width: 8rem; flex: 1; padding: .7rem; border: 1px solid #8886; border-radius: 8px; color: inherit; background: transparent; }
+.shipping-quote button { background: #7c3aed; color: white; border: 0; padding: .7rem 1rem; border-radius: 8px; cursor: pointer; }
+.shipping-quote button:disabled { opacity: .5; cursor: default; }
+.shipping-quote p, .cart-estimate-note { font-size: .85rem; line-height: 1.5; margin-top: .6rem; }

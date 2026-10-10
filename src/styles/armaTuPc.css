@@ -348,3 +348,7 @@
     position: static;
   }
 }
+.atp-comparison { grid-column: 1 / -1; padding: 1.25rem; border: 1px solid #8884; border-radius: 12px; order: 5; }
+.atp-comparison p { margin: .75rem 0; line-height: 1.5; }
+.atp-comparison__row { padding-block: 1rem; border-top: 1px solid #8883; }
+.atp-comparison__row ul { padding-left: 1.25rem; overflow-wrap: anywhere; }

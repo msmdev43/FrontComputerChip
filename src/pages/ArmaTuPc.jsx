@@ -1,3 +1,7 @@
+import { useCart } from '../context/CartContext';
+import { featureFlags } from '../config/featureFlags';
+import { normalizeProduct, getProductPricing } from '../utils/productUtils';
+import CompatibilidadAlert from '../components/UI/CompatibilidadAlert';
 import { useState, useEffect, useMemo } from 'react';
 import { categoriaService } from '../services/categoriaService';
 import { marcaService } from '../services/marcaService';
@@ -12,9 +16,10 @@ import '../styles/armaTuPc.css';
 const formatPrecio = (v) =>
   v != null ? `$${Number(v).toLocaleString('es-AR')}` : '—';
 
-const PROXIMAMENTE = true;
+const PROXIMAMENTE = !featureFlags.pcBuilder;
 
 export default function ArmaTuPc() {
+  const { addManyToCart } = useCart();
   // -------- Estado --------
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
@@ -28,6 +33,7 @@ export default function ArmaTuPc() {
 
   // -------- 1) Categorías + marcas --------
   useEffect(() => {
+    if (PROXIMAMENTE) return;
     const cargar = async () => {
       try {
         setLoadingCats(true);
@@ -56,7 +62,10 @@ export default function ArmaTuPc() {
         setLoadingProds(true);
         setError(null);
         const data = await productoService.getByCategoria(categoriaActivaId);
-        setProductosCategoria(data);
+        setProductosCategoria(data.filter(product => !product.deletedAt).map(product => {
+          const normalized = normalizeProduct(product);
+          return { ...normalized, isOnSale: !!normalized.oferta };
+        }));
       } catch (err) {
         setError('No se pudieron cargar los productos');
         console.error('[ArmaTuPc]', err);
@@ -110,12 +119,11 @@ export default function ArmaTuPc() {
   };
 
   const handleAgregarAlCarrito = () => {
-    // TODO: conectar a tu servicio de pedidos
-    console.log('Build lista para agregar:', seleccion);
+    addManyToCart([...new Map(Object.values(seleccion).filter(Boolean).map(product => [product.id, product])).values()]);
   };
 
   // -------- Render --------
-  if (loadingCats) return <p className="atp__estado">Cargando...</p>;
+  if (loadingCats && !PROXIMAMENTE) return <p className="atp__estado">Cargando...</p>;
   if (error && categorias.length === 0)
     return <p className="atp__estado atp__estado--error">{error}</p>;
 
@@ -215,8 +223,8 @@ export default function ArmaTuPc() {
                 const esSeleccionado =
                   seleccion[categoriaActivaId]?.id === prod.id;
                 const imagen =
-                  prod.imagenes?.[0] || '/placeholder-producto.png';
-                const precioFinal = prod.precioOferta ?? prod.precio;
+                  prod.imagen || '/images/product-placeholder.webp';
+                const precioFinal = getProductPricing(prod).price;
 
                 return (
                   <article
@@ -285,7 +293,7 @@ export default function ArmaTuPc() {
 
                       <div className="producto-card__meta">
                         {prod.stock ? (
-                          <span className="producto-card__ok">✓ Compatible</span>
+                          <span className="producto-card__ok">✓ Disponible</span>
                         ) : (
                           <span className="producto-card__no">Sin stock</span>
                         )}
@@ -303,6 +311,7 @@ export default function ArmaTuPc() {
           )}
         </main>
 
+        <CompatibilidadAlert products={[...new Map(Object.values(seleccion).filter(Boolean).map(product => [product.id, product])).values()]} />
         {/* ===== RESUMEN ===== */}
         <ResumenBuild
           categorias={categorias}

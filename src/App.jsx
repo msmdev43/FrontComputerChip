@@ -1,3 +1,6 @@
+import { CustomerProvider } from './context/CustomerContext';
+import MyAccount from './pages/MyAccount';
+import MyOrders from './pages/MyOrders';
 // C:\xampp\htdocs\FrontComputerChip\src\App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AdminProvider } from './context/AdminContext'
@@ -22,7 +25,7 @@ import './App.css'
 
 function App() {
   return (
-    <AdminProvider>
+    <CustomerProvider><AdminProvider>
       <CartProvider>
         <BrowserRouter>
           <ScrollToTop />
@@ -44,6 +47,8 @@ function App() {
                       <Route path="/contacto" element={<Contacto />} />
                       <Route path="/login" element={<Login />} />      
                       <Route path="/registro" element={<Register />} />
+                      <Route path="/mi-cuenta" element={<MyAccount />} />
+                      <Route path="/mis-pedidos" element={<MyOrders />} />
                       <Route path="/carrito" element={<Cart />} />
                       <Route path="/armatupc" element={<ArmaTuPc />} />
                       <Route path="*" element={<NotFound />} />
@@ -57,7 +62,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </CartProvider>
-    </AdminProvider>
+    </AdminProvider></CustomerProvider>
   )
 }
 

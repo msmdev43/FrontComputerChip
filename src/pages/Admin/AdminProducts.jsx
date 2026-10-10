@@ -169,6 +169,7 @@ const AdminProducts = () => {
       setShowModal(false);
       setEditingProduct(null);
     } catch (err) {
+      if (err.createdProduct) setEditingProduct(err.createdProduct);
       console.error('Error al guardar producto:', err);
       console.error('Respuesta del servidor:', err.response?.data);
       setSaveError(serverError(err));
@@ -221,14 +222,14 @@ const AdminProducts = () => {
 
   const getCategoryNames = (product) => {
     if (product.categorias && product.categorias.length > 0) {
-      return product.categorias.map(c => c.nombre).join(', ');
+      return product.categorias.map(c => typeof c === 'string' ? c : c.nombre).join(', ');
     }
     return 'N/D';
   };
 
   const getBrandNames = (product) => {
     if (product.marcas && product.marcas.length > 0) {
-      return product.marcas.map(m => m.nombre).join(', ');
+      return product.marcas.map(m => typeof m === 'string' ? m : m.nombre).join(', ');
     }
     return 'N/D';
   };

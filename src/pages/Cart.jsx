@@ -1,3 +1,5 @@
+import ShippingQuote from '../components/ShippingQuote';
+import { getQuantityLimit } from '../utils/productUtils';
 // C:\xampp\htdocs\FrontComputerChip\src\pages\Cart.jsx
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -16,6 +18,7 @@ function Cart() {
     getCartTotal 
   } = useCart();
 
+  const [shippingCost, setShippingCost] = useState(null);
   const [currentTheme, setCurrentTheme] = useState('light');
 
   // Detectar el tema actual
@@ -38,7 +41,7 @@ function Cart() {
     return () => observer.disconnect();
   }, []);
 
-  const { subtotal, envio, total } = getCartTotal();
+  const { subtotal, envio, total } = getCartTotal(shippingCost);
 
   // Elegir la imagen según el tema
   const carritoIcon = currentTheme === 'dark' ? carritoBlanco : carritoNegro;
@@ -129,7 +132,7 @@ function Cart() {
                       <span>{item.cantidad}</span>
                       <button 
                         onClick={() => updateQuantity(item.id, item.cantidad + 1)}
-                        disabled={item.cantidad >= item.stock}
+                        disabled={item.cantidad >= getQuantityLimit(item)}
                         aria-label="Aumentar cantidad"
                       >
                         +
@@ -165,18 +168,15 @@ function Cart() {
               
               <div className="summary-row">
                 <span>Envío estimado</span>
-                <span>{envio === 0 ? 'Gratis' : formatPrice(envio)}</span>
+                <span>{envio === null ? 'A calcular' : envio === 0 ? 'Gratis' : formatPrice(envio)}</span>
               </div>
               
-              {envio === 0 && subtotal > 0 && (
-                <div className="summary-free-shipping">
-                  🎉 ¡Envío gratis por compras sobre $100.000!
-                </div>
-              )}
+              <ShippingQuote onQuote={setShippingCost} />
+              <p className="cart-estimate-note">Los precios y la disponibilidad se confirman al habilitar la compra.</p>
 
               <div className="summary-total">
-                <span>Total estimado</span>
-                <span>{formatPrice(total)}</span>
+                <span>{total === null ? "Subtotal sin envío" : "Total estimado"}</span>
+                <span>{formatPrice(total ?? subtotal)}</span>
               </div>
 
               <div className="summary-actions">

@@ -37,7 +37,7 @@ export const pedidoService = {
      * @param {number} limit - Límite de resultados
      * @returns {Promise<Array>} Pedidos recientes
      */
-    getRecent: async (limit = 5) => {
+    getRecent: async () => {
         try {
             const response = await clienteAxios.get(ENDPOINTS.pedidos.recientes);
             return response.data;
@@ -142,7 +142,7 @@ export const pedidoService = {
      */
     cancelar: async (id) => {
         try {
-            const response = await clienteAxios.put(ENDPOINTS.pedidos.cancelar(id));
+            const response = await clienteAxios.delete(ENDPOINTS.pedidos.porId(id));
             return response.data;
         } catch (error) {
             console.error(`Error al cancelar pedido ${id}:`, error);
@@ -158,8 +158,9 @@ export const pedidoService = {
      */
     update: async (id, data) => {
         try {
-            const response = await clienteAxios.put(ENDPOINTS.pedidos.porId(id), data);
-            return response.data;
+            const action = { confirmado: "confirmar", enviado: "enviar", entregado: "entregar", cancelado: "cancelar" }[String(data.estado || "").toLowerCase()];
+            if (!action) throw new Error("El servidor no permite ese cambio de estado.");
+            return await pedidoService[action](id);
         } catch (error) {
             console.error(`Error al actualizar pedido ${id}:`, error);
             throw error;

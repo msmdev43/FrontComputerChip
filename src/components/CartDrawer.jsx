@@ -1,3 +1,4 @@
+import { getQuantityLimit } from '../utils/productUtils';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
@@ -71,7 +72,7 @@ export default function CartDrawer() {
                       <button type="button" disabled={item.cantidad <= 1} aria-label={`Reducir cantidad de ${item.nombre}`}
                         onClick={() => updateQuantity(item.id, item.cantidad - 1)}>−</button>
                       <span aria-live="polite">{item.cantidad}</span>
-                      <button type="button" disabled={item.cantidad >= item.stock} aria-label={`Aumentar cantidad de ${item.nombre}`}
+                      <button type="button" disabled={item.cantidad >= getQuantityLimit(item)} aria-label={`Aumentar cantidad de ${item.nombre}`}
                         onClick={() => updateQuantity(item.id, item.cantidad + 1)}>+</button>
                     </div>
                     <strong>{formatPrice(price * item.cantidad)}</strong>

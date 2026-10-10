@@ -73,7 +73,7 @@ export const atributoService = {
     actualizarValor: async (productoId, atributoId, valor) => {
         const { data } = await clienteAxios.put(
             ENDPOINTS.atributos.actualizarValor(productoId, atributoId),
-            valor, // ⚠️ el controller recibe `[FromBody] string valor`
+            JSON.stringify(valor), // El cuerpo debe ser un string JSON, incluso si el valor parece numérico.
             { headers: { 'Content-Type': 'application/json' } }
         );
         return data;

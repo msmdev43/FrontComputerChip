@@ -1,3 +1,4 @@
+import { useCustomer } from '../context/CustomerContext';
 // C:\xampp\htdocs\FrontComputerChip\src\components\Navbar.jsx
 import { useState } from 'react';
 import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
@@ -13,6 +14,7 @@ import '../styles/components/Navbar.css'
 
 function Navbar() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useCustomer();
   const [params] = useSearchParams();
   const submitSearch = (event) => {
     event.preventDefault();
@@ -50,9 +52,9 @@ function Navbar() {
 
           {/* Acciones de usuario */}
           <div className="cc-user-actions">
-            <Link to="/login" className="cc-action">
+            <Link to={isAuthenticated ? "/mi-cuenta" : "/login"} className="cc-action">
               <img src={ingresarEmoji} className="cc-action-icon" alt="Ingresar" />
-              <span>Ingresar</span>
+              <span>{isAuthenticated ? "Mi cuenta" : "Ingresar"}</span>
             </Link>
             
             <Link to="/carrito" className="cc-action cc-action-cart" aria-label={`Abrir carrito, ${itemCount} productos`}

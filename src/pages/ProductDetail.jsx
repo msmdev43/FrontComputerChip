@@ -6,7 +6,7 @@ import ShareModal from '../components/ShareModal';
 import '../styles/ProductDetail.css';
 import { createSlug } from '../utils/slugUtils';
 import { formatPrice } from '../config/currency';
-import { normalizeProduct, getProductPricing } from '../utils/productUtils';
+import { normalizeProduct, getProductPricing, getQuantityLimit } from '../utils/productUtils';
 
 function ProductDetail() {
   const { id, slug } = useParams();
@@ -85,7 +85,7 @@ function ProductDetail() {
   // ===== HELPERS =====
   // ===== HANDLERS =====
   const cartQuantity = cartItems.find(item => String(item.id) === String(product?.id))?.cantidad || 0;
-  const remainingStock = Math.max(0, (product?.stock || 0) - cartQuantity);
+  const remainingStock = Math.max(0, getQuantityLimit(product) - cartQuantity);
   const MAX_QUANTITY = Math.min(10, remainingStock);
   const selectedQuantity = Math.min(quantity, MAX_QUANTITY);
 
@@ -281,7 +281,7 @@ function ProductDetail() {
               {/* Perks */}
               <ul className="detail-perks">
                 <li className={inStock ? 'detail-in-stock' : 'detail-no-stock'}>
-                  {inStock ? `✅ En stock (${stock} unidades)` : '❌ Sin stock'}
+                  {inStock ? (product.stockQuantified ? `✅ En stock (${stock} unidades)` : '✅ Disponible') : '❌ Sin stock'}
                 </li>
                 {envioGratis === 1 && <li>🚚 Envío gratis</li>}
                 {garantia && <li>🛡️ Garantía: {garantia}</li>}

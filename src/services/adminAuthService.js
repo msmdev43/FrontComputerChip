@@ -109,7 +109,7 @@ class AdminAuthService {
       // La respuesta puede tener diferentes formatos
       // Opción 1: { admin, token }
       // Opción 2: { ...adminData, token }
-      // Opción 3: solo admin (backward compatibility)
+      // La respuesta debe incluir un token emitido por el servidor.
       
       let userData = null;
       let token = null;
@@ -124,12 +124,10 @@ class AdminAuthService {
         userData = response.data;
         token = response.data.token;
       }
-      // Si la respuesta solo tiene el admin (sin token - modo desarrollo)
+      // Rechazar respuestas sin token.
       else {
-        // Usar token mock solo para desarrollo
-        userData = response.data;
-        token = `mock-token-${Date.now()}`;
-        console.warn('⚠️ Usando token mock - El backend no está retornando token JWT');
+        // No simular autenticación.
+        throw new Error('El servidor no devolvió un token de administrador.');
       }
 
       const authData = {
@@ -164,9 +162,9 @@ class AdminAuthService {
    */
   async logout() {
     try {
-      const token = this.getToken();
-      if (token) {
-        await clienteAxios.post(ENDPOINTS.auth.logout).catch(() => {});
+      const auth = this.getAuthData();
+      if (auth?.refreshToken) {
+        await clienteAxios.post(ENDPOINTS.auth.logout, { refreshToken: auth.refreshToken });
       }
     } catch (error) {
       console.warn('Error en logout backend:', error);
@@ -187,13 +185,13 @@ class AdminAuthService {
       }
 
       const response = await clienteAxios.post(ENDPOINTS.auth.refresh, {
-        token: authData.refreshToken
+        refreshToken: authData.refreshToken
       });
 
-      if (response.data?.token) {
+      if (response.data?.accessToken) {
         const newAuthData = {
           ...authData,
-          token: response.data.token,
+          token: response.data.accessToken,
           refreshToken: response.data.refreshToken || authData.refreshToken
         };
         
@@ -202,7 +200,7 @@ class AdminAuthService {
         
         return {
           success: true,
-          token: response.data.token
+          token: response.data.accessToken
         };
       }
 
