@@ -10,6 +10,8 @@ import { formatPrice } from '../../config/currency';
 import { formValues, serverError, specificationIds } from '../../utils/adminProductForm';
 import '../../styles/Spinner.css';
 import '../../styles/admin/AdminProducts.css';
+import '../../styles/admin/ComputerChipAdmin.css';
+import AdminConfirmDialog from '../../components/Admin/AdminConfirmDialog';
 
 // ============================================
 // CONSTANTES
@@ -28,7 +30,7 @@ const INITIAL_FORM_DATA = {
 };
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: '📂 Todas las categorías' },
+  { value: 'all', label: 'Todos los estados' },
   { value: 'activo', label: '✅ Activos' },
   { value: 'inactivo', label: '❌ Inactivos' }
 ];
@@ -52,6 +54,11 @@ const AdminProducts = () => {
   const [openingModal, setOpeningModal] = useState(false);
   const [saveError, setSaveError] = useState('');
   const openingRef = useRef(false);
+  const [notice, setNotice] = useState('');
+  const [confirmation, setConfirmation] = useState(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const actionLock = useRef(false);
 
   // ===== LOAD DATA =====
   const loadProducts = useCallback(async () => {
@@ -95,8 +102,8 @@ const AdminProducts = () => {
   // ===== FILTER PRODUCTS =====
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const brandNames = product.marcas?.map(m => m.nombre).join(' ') || '';
-      const categoryNames = product.categorias?.map(c => c.nombre).join(' ') || '';
+      const brandNames = product.marcas?.map(m => typeof m === 'string' ? m : m.nombre).join(' ') || '';
+      const categoryNames = product.categorias?.map(c => typeof c === 'string' ? c : c.nombre).join(' ') || '';
       
       const matchSearch = 
         product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -105,7 +112,7 @@ const AdminProducts = () => {
       
       const matchCategory = 
         filterCategory === 'all' || 
-        product.categorias?.some(c => c.id === parseInt(filterCategory) || c.nombre === filterCategory);
+        product.categorias?.some(c => typeof c === 'string' ? c === categories.find(item => String(item.id) === filterCategory)?.nombre : String(c.id) === filterCategory);
       
       const matchStatus = 
         filterStatus === 'all' ||
@@ -114,29 +121,26 @@ const AdminProducts = () => {
       
       return matchSearch && matchCategory && matchStatus;
     });
-  }, [products, searchTerm, filterCategory, filterStatus]);
+  }, [products, searchTerm, filterCategory, filterStatus, categories]);
 
   // ===== HANDLERS =====
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
-    try {
-      await productoService.softDelete(id);
-      await loadProducts();
-    } catch (err) {
-      console.error('Error al eliminar producto:', err);
-      alert(err.response?.data?.Error || 'No se pudo eliminar el producto');
-    }
+  const requestAction = (id, type) => {
+    const product = products.find(item => item.id === id);
+    if (product) { setActionError(''); setConfirmation({ product, type }); }
   };
-
-  const handleRestore = async (id) => {
-    if (!window.confirm('¿Restaurar este producto?')) return;
+  const handleDelete = id => requestAction(id, 'delete');
+  const handleRestore = id => requestAction(id, 'restore');
+  const confirmAction = async () => {
+    if (actionLock.current || !confirmation) return;
+    actionLock.current = true; setActionBusy(true); setActionError('');
     try {
-      await productoService.restore(id);
+      if (confirmation.type === 'restore') await productoService.restore(confirmation.product.id);
+      else await productoService.softDelete(confirmation.product.id);
+      setNotice(confirmation.type === 'restore' ? 'Producto restaurado correctamente.' : 'Producto desactivado. Podés restaurarlo desde el filtro Inactivos.');
+      setConfirmation(null);
       await loadProducts();
-    } catch (err) {
-      console.error('Error al restaurar producto:', err);
-      alert(err.response?.data?.Error || 'No se pudo restaurar el producto');
-    }
+    } catch (err) { setActionError(serverError(err)); }
+    finally { actionLock.current = false; setActionBusy(false); }
   };
 
   const handleSaveProduct = async (formData) => {
@@ -165,6 +169,7 @@ const AdminProducts = () => {
         await productoService.create(productData);
       }
       
+      setNotice(editingProduct ? 'Cambios guardados correctamente.' : 'Producto creado correctamente.');
       await loadProducts();
       setShowModal(false);
       setEditingProduct(null);
@@ -241,7 +246,7 @@ const AdminProducts = () => {
   // ============================================
   if (loading) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-products-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader title="Gestión de Productos" />
@@ -266,25 +271,27 @@ const AdminProducts = () => {
   // RENDER: MAIN
   // ============================================
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard cc-admin-ui cc-products-page">
       <AdminSidebar />
       <div className="admin-main">
         <AdminHeader title="Gestión de Productos" />
         <div className="admin-content">
           <div className="admin-page-content">
             <div className="page-header">
-              <h2>📦 Lista de Productos</h2>
+              <div><span className="cc-eyebrow">CATÁLOGO</span><h2>Tus productos</h2><p className="cc-page-description">Administrá precios, disponibilidad y fichas técnicas.</p></div>
               <button className="btn-primary" onClick={openCreateModal} disabled={openingModal}>
-                ➕ Agregar Producto
+                ＋ Agregar producto
               </button>
             </div>
 
+            <div className="cc-catalog-summary"><span><strong>{products.length}</strong> productos</span><span><i className="cc-dot" />{products.filter(p => !p.deletedAt).length} activos</span><span>{products.filter(p => !p.deletedAt && !p.stock).length} sin stock</span></div>
+            {notice && <div className="cc-feedback" role="status"><span>✓ {notice}</span><button type="button" onClick={() => setNotice('')} aria-label="Cerrar aviso">×</button></div>}
             <div className="search-bar">
               <div className="search-input-wrapper">
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Buscar productos por nombre, marca o categoría..."
+                  aria-label="Buscar productos" placeholder="Buscar por nombre, marca o categoría…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -292,11 +299,11 @@ const AdminProducts = () => {
               
               <div className="filter-group">
                 <select 
-                  className="filter-select"
+                  className="filter-select" aria-label="Filtrar por categoría"
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
                 >
-                  <option value="all">📂 Todas las categorías</option>
+                  <option value="all">Todas las categorías</option>
                 {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.nombre}
@@ -305,7 +312,7 @@ const AdminProducts = () => {
                 </select>
                 
                 <select 
-                  className="filter-select"
+                  className="filter-select" aria-label="Filtrar por estado"
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
@@ -361,7 +368,7 @@ const AdminProducts = () => {
                     filteredProducts.map(product => (
                       <tr key={product.id} className={!isActive(product) ? 'row-inactive' : ''}>
                         <td>#{product.id}</td>
-                        <td><span className="product-name">{product.nombre}</span></td>
+                        <td><span className="cc-product-title">{product.nombre}</span><small className="cc-product-code">{product.codigoSerie || `Producto #${product.id}`}</small></td>
                         <td><span className="product-brand">{getBrandNames(product)}</span></td>
                         <td><span className="product-category">{getCategoryNames(product)}</span></td>
                         <td className="product-price">{formatPrice(product.precio)}</td>
@@ -377,11 +384,11 @@ const AdminProducts = () => {
                         </td>
                         <td>
                           <div className="action-buttons">
-                            <button className="btn-action btn-action-edit" onClick={() => openEditModal(product)} disabled={openingModal} title="Editar producto">✏️</button>
+                            <button className="btn-action btn-action-edit" onClick={() => openEditModal(product)} disabled={openingModal} title="Editar producto" aria-label={`Editar ${product.nombre}`}>Editar</button>
                             {isActive(product) ? (
-                              <button className="btn-action btn-action-delete" onClick={() => handleDelete(product.id)} title="Eliminar producto">🗑️</button>
+                              <button className="btn-action btn-action-delete" onClick={() => handleDelete(product.id)} title="Desactivar producto" aria-label={`Desactivar ${product.nombre}`}>×</button>
                             ) : (
-                              <button className="btn-action btn-action-restore" onClick={() => handleRestore(product.id)} title="Restaurar producto">🔄</button>
+                              <button className="btn-action btn-action-restore" onClick={() => handleRestore(product.id)} title="Restaurar producto" aria-label={`Restaurar ${product.nombre}`}>↻</button>
                             )}
                           </div>
                         </td>
@@ -401,6 +408,8 @@ const AdminProducts = () => {
         </div>
       </div>
 
+      {confirmation && <AdminConfirmDialog action={confirmation} busy={actionBusy} error={actionError}
+        onCancel={() => { if (!actionBusy) setConfirmation(null); }} onConfirm={confirmAction} />}
       {/* MODAL REDISEÑADO */}
       {showModal && (
         <ProductModal
@@ -435,34 +444,45 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
   const [priceMode, setPriceMode] = useState('amount');
   const calculateOffer = (price, percent) => Number(price) > 0 && percent !== '' && Number(percent) > 0 && Number(percent) < 100
     ? (Math.round(Number(price) * (1 - Number(percent) / 100) * 100) / 100).toFixed(2) : '';
+  const modalRef = useRef(null);
+  const [validationError, setValidationError] = useState('');
+  useEffect(() => {
+    const dialog = modalRef.current;
+    const opener = document.activeElement;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    return () => { dialog.close(); document.body.style.overflow = previous; if (opener?.isConnected) opener.focus(); };
+  }, []);
   const [specSearch, setSpecSearch] = useState('');
   const filteredSpecs = specifications.filter(spec => `${spec.titulo || ''} ${spec.descripcion || ''}`.toLocaleLowerCase('es').includes(specSearch.toLocaleLowerCase('es').trim()));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setValidationError('');
 
     if (!formData.nombre.trim()) {
-      alert('El nombre del producto es obligatorio');
+      setValidationError('El nombre del producto es obligatorio');
       return;
     }
 
     if (!Number.isFinite(Number(formData.precio)) || Number(formData.precio) <= 0) {
-      alert('El precio debe ser mayor a 0');
+      setValidationError('El precio debe ser mayor a 0');
       return;
     }
 
     if (formData.precioOferta !== '' && (!Number.isFinite(Number(formData.precioOferta)) || Number(formData.precioOferta) <= 0 || Number(formData.precioOferta) >= Number(formData.precio))) {
-      alert('El precio de oferta debe ser mayor a 0 y menor al precio original.');
+      setValidationError('El precio de oferta debe ser mayor a 0 y menor al precio original.');
       return;
     }
 
     if (formData.categoriaIds.length === 0) {
-      alert('Debe seleccionar al menos una categoría');
+      setValidationError('Debe seleccionar al menos una categoría');
       return;
     }
 
     if (formData.marcaIds.length === 0) {
-      alert('Debe seleccionar al menos una marca');
+      setValidationError('Debe seleccionar al menos una marca');
       return;
     }
 
@@ -488,22 +508,6 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
     }));
   };
 
-  const handleCategoryChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-    setFormData(prev => ({
-      ...prev,
-      categoriaIds: selectedOptions
-    }));
-  };
-
-  const handleBrandChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-    setFormData(prev => ({
-      ...prev,
-      marcaIds: selectedOptions
-    }));
-  };
-
   // Formatear precio con separadores de miles para mostrar
   const formatPriceDisplay = (value) => {
     if (!value) return '';
@@ -511,22 +515,24 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <dialog ref={modalRef} className="cc-product-dialog" aria-labelledby="cc-product-heading"
+      onCancel={event => { event.preventDefault(); if (!submitting) onClose(); }}>
+    <div className="cc-product-overlay">
       <div className="modal-content modal-product" onClick={e => e.stopPropagation()}>
         {/* HEADER CON BOTÓN CERRAR */}
         <div className="modal-header">
-          <h3>{product ? '✏️ Editar Producto' : '➕ Nuevo Producto'}</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose} title="Cerrar">✕</button>
+          <div><span className="cc-eyebrow">FICHA DEL CATÁLOGO</span><h3 id="cc-product-heading">{product ? 'Editar producto' : 'Nuevo producto'}</h3><p>Completá los datos y las características del producto.</p></div>
+          <button type="button" className="modal-close-btn" onClick={onClose} disabled={submitting} aria-label="Cerrar formulario" title="Cerrar">✕</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {saveError && <div className="error-message" role="alert" style={{ whiteSpace: 'pre-line' }}>{saveError}</div>}
+          {(saveError || validationError) && <div className="cc-feedback cc-feedback--error" role="alert">{saveError || validationError}</div>}
           {/* Nombre - Ocupa todo el ancho */}
           <div className="form-group">
-            <label>Nombre del Producto *</label>
+            <label htmlFor="cc-nombre">Nombre del Producto *</label>
             <input
               type="text"
-              name="nombre"
+              id="cc-nombre" name="nombre"
               value={formData.nombre}
               onChange={handleChange}
               required
@@ -585,10 +591,10 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
           {/* Precios - 2 columnas */}
           <div className="form-row">
             <div className="form-group">
-              <label>Precio * (ARS)</label>
+              <label htmlFor="cc-precio">Precio * (ARS)</label>
               <input
                 type="number" min="0" step="0.01"
-                name="precio"
+                id="cc-precio" name="precio"
                 value={formData.precio}
                 onChange={handleChange}
                 required
@@ -603,10 +609,10 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
             </div>
 
             <div className="form-group">
-              <label>Precio en Oferta (ARS)</label>
+              <label htmlFor="cc-precioOferta">Precio en Oferta (ARS)</label>
               <input
                 type="number" min="0" step="0.01"
-                name="precioOferta"
+                id="cc-precioOferta" name="precioOferta"
                 value={formData.precioOferta}
                 onChange={handleChange}
                 placeholder="Ej: 149999"
@@ -645,10 +651,10 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
           {/* Garantía + Código Serie - 2 columnas */}
           <div className="form-row">
             <div className="form-group">
-              <label>Garantía</label>
+              <label htmlFor="cc-garantia">Garantía</label>
               <input
                 type="text"
-                name="garantia"
+                id="cc-garantia" name="garantia"
                 value={formData.garantia}
                 onChange={handleChange}
                 placeholder="Ej: 12 meses"
@@ -657,10 +663,10 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
             </div>
 
             <div className="form-group">
-              <label>Código de Serie</label>
+              <label htmlFor="cc-codigoSerie">Código de Serie</label>
               <input
                 type="text"
-                name="codigoSerie"
+                id="cc-codigoSerie" name="codigoSerie"
                 value={formData.codigoSerie}
                 onChange={handleChange}
                 placeholder="Código único del producto"
@@ -698,59 +704,26 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
             </div>
           </div>
 
-          {/* Marcas y Categorías - 2 columnas con selects más grandes */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>
-                Marcas * 
-                <span className="help-label"> (selecciona múltiples)</span>
-              </label>
-              <select
-                name="marcaIds"
-                multiple
-                value={formData.marcaIds.map(String)}
-                onChange={handleBrandChange}
-                disabled={submitting}
-                className="select-multiple"
-                required
-              >
-                {formData.marcaIds.filter(id => !brands.some(item => Number(item.id) === id)).map(id => <option key={id} value={id}>Marca #{id} (actual)</option>)}
-                {brands.map(brand => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.nombre}
-                  </option>
-                ))}
-              </select>
-              <small className="help-text">
-                ⌨️ Ctrl/Cmd + clic para seleccionar múltiples
-              </small>
-            </div>
-
-            <div className="form-group">
-              <label>
-                Categorías * 
-                <span className="help-label"> (selecciona múltiples)</span>
-              </label>
-              <select
-                name="categoriaIds"
-                multiple
-                value={formData.categoriaIds.map(String)}
-                onChange={handleCategoryChange}
-                disabled={submitting}
-                className="select-multiple"
-                required
-              >
-                {formData.categoriaIds.filter(id => !categories.some(item => Number(item.id) === id)).map(id => <option key={id} value={id}>Categoría #{id} (actual)</option>)}
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nombre}
-                  </option>
-                ))}
-              </select>
-              <small className="help-text">
-                ⌨️ Ctrl/Cmd + clic para seleccionar múltiples
-              </small>
-            </div>
+          <div className="form-row cc-relations">
+            {[{ key: 'marcaIds', title: 'Marcas', items: brands }, { key: 'categoriaIds', title: 'Categorías', items: categories }].map(group => (
+              <fieldset key={group.key} disabled={submitting} className="cc-choice-group">
+                <legend>{group.title} <span>*</span></legend>
+                <p>Seleccioná una o más opciones.</p>
+                <div className="cc-choice-list">
+                  {[...group.items, ...formData[group.key].filter(id => !group.items.some(item => Number(item.id) === id)).map(id => ({ id, nombre: `#${id} (actual)` }))].map(item => (
+                    <label key={item.id} className={formData[group.key].includes(Number(item.id)) ? 'is-selected' : ''}>
+                      <input type="checkbox" checked={formData[group.key].includes(Number(item.id))}
+                        onChange={event => {
+                          const checked = event.target.checked;
+                          setFormData(prev => ({ ...prev, [group.key]: checked ? [...new Set([...prev[group.key], Number(item.id)])] : prev[group.key].filter(id => id !== Number(item.id)) }));
+                        }} />
+                      <span>{item.nombre}</span>
+                    </label>
+                  ))}
+                  {!group.items.length && <small>No hay opciones creadas.</small>}
+                </div>
+              </fieldset>
+            ))}
           </div>
 
           {/* Acciones */}
@@ -765,6 +738,7 @@ const ProductModal = ({ product, onClose, onSave, categories, brands, specificat
         </form>
       </div>
     </div>
+    </dialog>
   );
 };
 

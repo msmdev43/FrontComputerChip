@@ -1,4 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import AdminActionDialog from '../../components/Admin/AdminActionDialog';
+import { serverError } from '../../utils/adminProductForm';
+import '../../styles/admin/ComputerChipAdmin.css';
+import '../../styles/admin/AdminCatalogOrders.css';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import { orderCustomer, orderStatus } from '../../utils/orderUtils';
@@ -59,6 +63,11 @@ const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [confirmation, setConfirmation] = useState(null);
+  const actionLock = useRef(false);
+  const detailLock = useRef(false);
 
   // ===== LOAD ORDERS =====
   const loadOrders = useCallback(async () => {
@@ -110,67 +119,37 @@ const AdminOrders = () => {
   }, [orders]);
 
   // ===== HANDLERS =====
-  const updateOrderStatus = async (orderId, newStatus) => {
-    try {
-      setUpdatingStatus(orderId);
-      
-      if (newStatus.toLowerCase() === 'cancelado' && !window.confirm('¿Cancelar este pedido?')) return;
-      let result;
-      switch (newStatus.toLowerCase()) {
-        case 'confirmado':
-          result = await pedidoService.confirmar(orderId);
-          break;
-        case 'enviado':
-          result = await pedidoService.enviar(orderId);
-          break;
-        case 'entregado':
-          result = await pedidoService.entregar(orderId);
-          break;
-        case 'cancelado':
-          result = await pedidoService.cancelar(orderId);
-          break;
-        default:
-          // actualizar directamente
-          result = await pedidoService.update(orderId, { estado: newStatus });
-          break;
-      }
-      
-      // Actualizar localmente
-      setOrders(current => current.map(order => 
-        (order.idpedidos === orderId || order.id === orderId) 
-          ? { ...order, estado: newStatus } 
-          : order
-      ));
-      
-    } catch (err) {
-      console.error('Error al actualizar estado:', err);
-      alert(err.response?.data?.Error || 'Error al actualizar el estado del pedido');
-    } finally {
-      setUpdatingStatus(null);
-    }
+  const updateOrderStatus = (orderId, newStatus) => {
+    if (actionLock.current) return;
+    setActionError(''); setConfirmation({ orderId, newStatus });
   };
-
-  const cancelOrder = async (orderId) => {
-    if (!window.confirm('¿Estás seguro de cancelar este pedido?')) return;
+  const cancelOrder = orderId => updateOrderStatus(orderId, 'Cancelado');
+  const confirmStatus = async () => {
+    if (actionLock.current || !confirmation) return;
+    const { orderId, newStatus } = confirmation;
+    const action = { Confirmado: 'confirmar', Enviado: 'enviar', Entregado: 'entregar', Cancelado: 'cancelar' }[newStatus];
+    if (!action) return;
+    actionLock.current = true; setUpdatingStatus(orderId); setActionError('');
     try {
-      await pedidoService.cancelar(orderId);
-      await loadOrders();
-    } catch (err) {
-      console.error('Error al cancelar pedido:', err);
-      alert(err.response?.data?.Error || 'Error al cancelar el pedido');
-    }
+      await pedidoService[action](orderId);
+      setOrders(current => current.map(order => (order.idpedidos || order.id) === orderId ? { ...order, estado: newStatus } : order));
+      setNotice(`Pedido #${orderId}: estado actualizado a ${newStatus.toLowerCase()}.`);
+      setConfirmation(null);
+    } catch (err) { setActionError(serverError(err)); }
+    finally { actionLock.current = false; setUpdatingStatus(null); }
   };
 
   const viewOrderDetail = async (order) => {
-    if (detailLoading) return;
+    if (detailLock.current) return;
+    detailLock.current = true; setActionError('');
     setDetailLoading(true);
     try {
-      const detail = await pedidoService.getById(order.id);
+      const detail = await pedidoService.getById(order.idpedidos || order.id);
       setSelectedOrder({ ...detail, estado: orderStatus(detail.estado) });
       setShowOrderDetail(true);
     } catch (err) {
-      setError(err.response?.data?.error || 'No se pudo cargar el detalle del pedido.');
-    } finally { setDetailLoading(false); }
+      setActionError(serverError(err));
+    } finally { detailLock.current = false; setDetailLoading(false); }
   };
 
   const clearFilters = () => {
@@ -214,7 +193,7 @@ const AdminOrders = () => {
   // ============================================
   if (loading) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-orders-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader title="Gestión de Pedidos" />
@@ -240,7 +219,7 @@ const AdminOrders = () => {
   // ============================================
   if (error) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-orders-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader title="Gestión de Pedidos" />
@@ -261,7 +240,7 @@ const AdminOrders = () => {
   // RENDER: ORDERS
   // ============================================
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard cc-admin-ui cc-orders-page">
       <AdminSidebar />
       <div className="admin-main">
         <AdminHeader title="Gestión de Pedidos" />
@@ -269,12 +248,15 @@ const AdminOrders = () => {
           <div className="admin-page-content">
             {/* Page Header */}
             <div className="page-header">
-              <h2>📋 Pedidos</h2>
-              <button className="btn-primary" onClick={loadOrders} title="Recargar pedidos">
-                🔄 Recargar
+              <div><span className="cc-eyebrow">VENTAS Y SEGUIMIENTO</span><h2>Tus pedidos</h2><p className="cc-page-description">Consultá el detalle y administrá el estado de cada pedido.</p></div>
+              <button className="btn-primary" onClick={loadOrders} disabled={updatingStatus !== null || detailLoading} title="Recargar pedidos">
+                ↻ Actualizar
               </button>
             </div>
 
+            {notice && <div className="cc-feedback" role="status"><span>✓ {notice}</span><button aria-label="Cerrar aviso" onClick={() => setNotice('')}>×</button></div>}
+            {actionError && !confirmation && <p className="cc-feedback cc-feedback--error" role="alert">{actionError}</p>}
+            {detailLoading && <p role="status" className="cc-page-description">Cargando detalle del pedido…</p>}
             {/* Stats */}
             <div className="order-stats">
               <div className="order-stat-card">
@@ -309,14 +291,14 @@ const AdminOrders = () => {
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Buscar por cliente o ID de pedido..."
+                  aria-label="Buscar pedidos" placeholder="Buscar por cliente o número de pedido…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
               <select 
-                className="order-status-select"
+                className="order-status-select" aria-label="Filtrar por estado"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               >
@@ -353,15 +335,14 @@ const AdminOrders = () => {
                       <td colSpan="6" className="no-results">
                         <div className="empty-state">
                           <span className="empty-icon">📭</span>
-                          <p>No se encontraron pedidos</p>
-                          <span className="empty-sub">Prueba con otros filtros</span>
+                          <p>{orders.length ? 'No hay coincidencias' : 'Todavía no hay pedidos'}</p>
+                          <span className="empty-sub">{orders.length ? 'Probá con otro nombre o estado.' : 'Cuando se registren pedidos, aparecerán en esta lista.'}</span>
                         </div>
                       </td>
                     </tr>
                   ) : (
                     filteredOrders.map(order => {
                       const orderId = getOrderId(order);
-                      const isUpdating = updatingStatus === orderId;
                       
                       return (
                         <tr key={orderId}>
@@ -380,7 +361,7 @@ const AdminOrders = () => {
                                 className="order-status-change"
                                 value={order.estado || 'pendiente'}
                                 onChange={(e) => updateOrderStatus(orderId, e.target.value)}
-                                disabled={isUpdating}
+                                disabled={updatingStatus !== null} aria-label={`Cambiar estado del pedido ${orderId}`}
                               >
                                 <option value="Pendiente" disabled>Pendiente</option>
                                 <option value="Confirmado">Confirmado</option>
@@ -391,18 +372,18 @@ const AdminOrders = () => {
                               <button 
                                 className="btn-action btn-action-view" 
                                 disabled={detailLoading} onClick={() => viewOrderDetail(order)}
-                                title="Ver detalles"
+                                title="Ver detalles" aria-label={`Ver pedido ${orderId}`}
                               >
-                                👁️
+                                Ver detalle
                               </button>
                               {order.estado?.toLowerCase() !== 'cancelado' && 
                                order.estado?.toLowerCase() !== 'entregado' && (
                                 <button 
                                   className="btn-action btn-action-delete" 
                                   onClick={() => cancelOrder(orderId)}
-                                  title="Cancelar pedido"
+                                  disabled={updatingStatus !== null} title="Cancelar pedido" aria-label={`Cancelar pedido ${orderId}`}
                                 >
-                                  ❌
+                                  ×
                                 </button>
                               )}
                             </div>
@@ -425,6 +406,10 @@ const AdminOrders = () => {
         </div>
       </div>
 
+      {confirmation && <AdminActionDialog title={`Pedido #${confirmation.orderId}`}
+        description={`¿Cambiar el estado a ${confirmation.newStatus.toLowerCase()}?`}
+        label={confirmation.newStatus === 'Cancelado' ? 'Cancelar pedido' : 'Confirmar cambio'} danger={confirmation.newStatus === 'Cancelado'}
+        busy={updatingStatus !== null} error={actionError} onCancel={() => { if (updatingStatus === null) { setConfirmation(null); setActionError(''); } }} onConfirm={confirmStatus} />}
       {/* Order Detail Modal */}
       {showOrderDetail && selectedOrder && (
         <OrderDetailModal
@@ -453,13 +438,21 @@ const OrderDetailModal = ({
   getStatusColor 
 }) => {
   const orderId = order.idpedidos || order.id;
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const opener = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden'; dialog.showModal();
+    return () => { dialog.close(); document.body.style.overflow = overflow; if (opener?.isConnected) opener.focus(); };
+  }, []);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <dialog ref={dialogRef} className="cc-order-dialog" aria-labelledby="cc-order-title" onCancel={event => { event.preventDefault(); onClose(); }}>
       <div className="modal-content modal-order-detail" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>📋 Detalle del Pedido #{orderId}</h3>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <div><span className="cc-eyebrow">DETALLE DE LA COMPRA</span><h3 id="cc-order-title">Pedido #{orderId}</h3></div>
+          <button className="modal-close-btn" aria-label="Cerrar detalle" onClick={onClose}>✕</button>
         </div>
 
         <div className="order-summary">
@@ -483,6 +476,7 @@ const OrderDetailModal = ({
           </div>
         </div>
 
+        {!order.items?.length && <p className="cc-order-empty">No hay productos informados en este pedido.</p>}
         {order.items && order.items.length > 0 && (
           <div className="order-products">
             <h4>🛒 Productos</h4>
@@ -509,7 +503,7 @@ const OrderDetailModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };
 

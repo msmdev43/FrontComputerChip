@@ -1,4 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import AdminActionDialog from '../../components/Admin/AdminActionDialog';
+import { serverError } from '../../utils/adminProductForm';
+import '../../styles/admin/ComputerChipAdmin.css';
+import '../../styles/admin/AdminCatalogOrders.css';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminHeader from '../../components/Admin/AdminHeader';
 import { categoriaService } from '../../services/categoriaService';
@@ -17,6 +21,12 @@ const AdminCategoriesBrands = () => {
   // Form State
   const [nombre, setNombre] = useState('');
   const [editingItem, setEditingItem] = useState(null);
+  const [notice, setNotice] = useState('');
+  const [formError, setFormError] = useState('');
+  const [confirmation, setConfirmation] = useState(null);
+  const [actionError, setActionError] = useState('');
+  const lock = useRef(false);
+  const nameRef = useRef(null);
 
   // Load Data
   const fetchData = useCallback(async () => {
@@ -44,11 +54,14 @@ const AdminCategoriesBrands = () => {
   // Handle Form Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (lock.current) return;
+    setFormError('');
     if (!nombre.trim()) {
-      alert('El nombre es obligatorio');
+      setFormError('El nombre es obligatorio');
       return;
     }
 
+    lock.current = true;
     try {
       setSubmitting(true);
       const isCategory = activeTab === 'categories';
@@ -56,19 +69,21 @@ const AdminCategoriesBrands = () => {
 
       if (editingItem) {
         const itemId = editingItem.id || editingItem.idcategoria || editingItem.idmarca;
-        await service.update(itemId, { nombre });
+        await service.update(itemId, { nombre: nombre.trim() });
       } else {
-        await service.create({ nombre });
+        await service.create({ nombre: nombre.trim() });
       }
 
+      setNotice(editingItem ? 'Cambios guardados correctamente.' : 'Registro creado correctamente.');
       setNombre('');
       setEditingItem(null);
       await fetchData();
     } catch (err) {
       console.error('Error al guardar:', err);
-      alert(err.response?.data?.Error || 'Error al procesar la solicitud');
+      setFormError(serverError(err));
     } finally {
       setSubmitting(false);
+      lock.current = false;
     }
   };
 
@@ -76,39 +91,33 @@ const AdminCategoriesBrands = () => {
   const handleEdit = (item) => {
     setEditingItem(item);
     setNombre(item.nombre || '');
+    setFormError('');
+    nameRef.current?.focus();
+    nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  // Delete
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este registro?')) return;
-
-    try {
-      const isCategory = activeTab === 'categories';
-      const service = isCategory ? categoriaService : marcaService;
-      await service.delete(id);
-      await fetchData();
-    } catch (err) {
-      console.error('Error al eliminar:', err);
-      alert(err.response?.data?.Error || 'Error al eliminar el registro');
-    }
+  const requestAction = (id, type) => {
+    if (lock.current) return;
+    setActionError('');
+    setConfirmation({ id, type, tab: activeTab });
   };
-
-  // Restore 
-  const handleRestore = async (id) => {
-    if (!window.confirm('¿Restaurar este registro?')) return;
-
+  const handleDelete = id => requestAction(id, 'delete');
+  const handleRestore = id => requestAction(id, 'restore');
+  const confirmAction = async () => {
+    if (lock.current || !confirmation) return;
+    lock.current = true; setSubmitting(true); setActionError('');
     try {
-      const isCategory = activeTab === 'categories';
-      const service = isCategory ? categoriaService : marcaService;
-      await service.restore(id);
+      const service = confirmation.tab === 'categories' ? categoriaService : marcaService;
+      await service[confirmation.type](confirmation.id);
+      setNotice(confirmation.type === 'restore' ? 'Registro restaurado correctamente.' : 'Registro desactivado correctamente.');
+      setConfirmation(null); cancelEdit();
       await fetchData();
-    } catch (err) {
-      console.error('Error al restaurar:', err);
-      alert(err.response?.data?.Error || 'Error al restaurar el registro');
-    }
+    } catch (err) { setActionError(serverError(err)); }
+    finally { lock.current = false; setSubmitting(false); }
   };
 
   const cancelEdit = () => {
+    setFormError('');
     setEditingItem(null);
     setNombre('');
   };
@@ -121,7 +130,7 @@ const AdminCategoriesBrands = () => {
   // ============================================
   if (loading) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-catalog-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader title="Categorías y Marcas" />
@@ -149,7 +158,7 @@ const AdminCategoriesBrands = () => {
   // ============================================
   if (error) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-catalog-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader title="Categorías y Marcas" />
@@ -170,26 +179,28 @@ const AdminCategoriesBrands = () => {
   // RENDER: MAIN
   // ============================================
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard cc-admin-ui cc-catalog-page">
       <AdminSidebar />
       <div className="admin-main">
         <AdminHeader title="Categorías y Marcas" />
         <div className="admin-content">
           <div className="admin-page-content">
             
+            <div className="page-header"><div><span className="cc-eyebrow">ORGANIZACIÓN DEL CATÁLOGO</span><h2>Categorías y marcas</h2><p className="cc-page-description">Ordená tus productos para que sean más fáciles de encontrar.</p></div></div>
+            {notice && <div className="cc-feedback" role="status"><span>✓ {notice}</span><button onClick={() => setNotice('')} aria-label="Cerrar aviso">×</button></div>}
             {/* Tabs Selector */}
             <div className="cat-tabs">
               <button 
-                className={`cat-tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+                disabled={submitting} aria-pressed={activeTab === 'categories'} className={`cat-tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
                 onClick={() => { setActiveTab('categories'); cancelEdit(); }}
               >
-                📁 Categorías ({categories.length})
+                Categorías ({categories.length})
               </button>
               <button 
-                className={`cat-tab-btn ${activeTab === 'brands' ? 'active' : ''}`}
+                disabled={submitting} aria-pressed={activeTab === 'brands'} className={`cat-tab-btn ${activeTab === 'brands' ? 'active' : ''}`}
                 onClick={() => { setActiveTab('brands'); cancelEdit(); }}
               >
-                🏷️ Marcas ({brands.length})
+                Marcas ({brands.length})
               </button>
             </div>
 
@@ -197,13 +208,14 @@ const AdminCategoriesBrands = () => {
               {/* Form Card */}
               <div className="cat-card cat-form-card">
                 <h3>
-                  {editingItem ? '✏️ Editar' : '➕ Crear'} {activeTab === 'categories' ? 'Categoría' : 'Marca'}
+                  {editingItem ? 'Editar' : 'Nueva'} {activeTab === 'categories' ? 'Categoría' : 'Marca'}
                 </h3>
-                <form onSubmit={handleSubmit}>
+                <p className="cc-page-description">Usá un nombre breve y reconocible.</p><form onSubmit={handleSubmit}>
+                  {formError && <div className="cc-feedback cc-feedback--error" role="alert">{formError}</div>}
                   <div className="form-group">
-                    <label>Nombre</label>
+                    <label htmlFor="cc-catalog-name">Nombre</label>
                     <input
-                      type="text"
+                      id="cc-catalog-name" ref={nameRef} type="text"
                       placeholder={`Ej. ${activeTab === 'categories' ? 'Monitores' : 'Asus'}`}
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
@@ -226,7 +238,7 @@ const AdminCategoriesBrands = () => {
 
               {/* List Table */}
               <div className="cat-card cat-table-card">
-                <h3>📋 Lista de {activeTab === 'categories' ? 'Categorías' : 'Marcas'}</h3>
+                <h3>Lista de {activeTab === 'categories' ? 'Categorías' : 'Marcas'}</h3>
                 <div className="table-container">
                   <table className="admin-table">
                     <thead>
@@ -270,25 +282,25 @@ const AdminCategoriesBrands = () => {
                                       <button 
                                         className="btn-action btn-action-edit" 
                                         onClick={() => handleEdit(item)}
-                                        title="Editar"
+                                        disabled={submitting} title="Editar" aria-label={`Editar ${item.nombre}`}
                                       >
-                                        ✏️
+                                        Editar
                                       </button>
                                       <button 
                                         className="btn-action btn-action-delete" 
                                         onClick={() => handleDelete(itemId)}
-                                        title="Eliminar"
+                                        disabled={submitting} title="Desactivar" aria-label={`Desactivar ${item.nombre}`}
                                       >
-                                        🗑️
+                                        ×
                                       </button>
                                     </>
                                   ) : (
                                     <button 
                                       className="btn-action btn-action-restore" 
                                       onClick={() => handleRestore(itemId)}
-                                      title="Restaurar"
+                                      disabled={submitting} title="Restaurar" aria-label={`Restaurar ${item.nombre}`}
                                     >
-                                      🔄
+                                      ↻
                                     </button>
                                   )}
                                 </div>
@@ -311,6 +323,11 @@ const AdminCategoriesBrands = () => {
           </div>
         </div>
       </div>
+      {confirmation && <AdminActionDialog
+        title={confirmation.type === 'restore' ? 'Restaurar registro' : 'Desactivar registro'}
+        description={confirmation.type === 'restore' ? 'El registro volverá a estar activo.' : 'El registro dejará de estar activo. Esta acción no lo elimina de forma permanente.'}
+        label={confirmation.type === 'restore' ? 'Restaurar' : 'Desactivar'} danger={confirmation.type === 'delete'}
+        busy={submitting} error={actionError} onCancel={() => { if (!submitting) setConfirmation(null); }} onConfirm={confirmAction} />}
     </div>
   );
 };

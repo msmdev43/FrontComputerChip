@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+import '../../styles/admin/ComputerChipAdmin.css';
 import { orderCustomer, orderStatus } from '../../utils/orderUtils';
 // src/pages/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,6 +14,7 @@ import '../../styles/admin/AdminDashboard.css';
 import '../../styles/Spinner.css';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAdmin();
   const [stats, setStats] = useState({
     totalPedidos: 0,
@@ -148,7 +151,7 @@ const AdminDashboard = () => {
   // ============================================
   if (loading) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-dashboard-page">
         <AdminSidebar />
         <div className="admin-main">
           <div className="loading-container">
@@ -173,14 +176,14 @@ const AdminDashboard = () => {
   // ============================================
   if (error) {
     return (
-      <div className="admin-dashboard">
+      <div className="admin-dashboard cc-admin-ui cc-dashboard-page">
         <AdminSidebar />
         <div className="admin-main">
           <AdminHeader 
             title="Panel de Control" 
             subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
           />
-          <div className="admin-content"><p role="status">El servidor todavía devuelve valores provisionales para ventas, stock y otras métricas. Los ceros del resumen no confirman ausencia de actividad.</p>
+          <div className="admin-content"><div className="cc-metrics-notice" role="note"><span className="cc-notice-symbol" aria-hidden="true">i</span><div><strong>Resumen con datos parciales</strong><p>Algunas métricas todavía están pendientes de actualización. Un valor en cero puede ser provisional.</p></div></div>
             <div className="error-message">
               <div className="error-icon">⚠️</div>
               <p>{error}</p>
@@ -208,14 +211,14 @@ const AdminDashboard = () => {
   // RENDER: DASHBOARD
   // ============================================
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard cc-admin-ui cc-dashboard-page">
       <AdminSidebar />
       <div className="admin-main">
         <AdminHeader 
           title="Panel de Control" 
           subtitle={`Bienvenido, ${user?.nombre || user?.usuario || 'Administrador'}`}
         />
-        <div className="admin-content"><p role="status">El servidor todavía devuelve valores provisionales para ventas, stock y otras métricas. Los ceros del resumen no confirman ausencia de actividad.</p>
+        <div className="admin-content"><div className="cc-metrics-notice" role="note"><span className="cc-notice-symbol" aria-hidden="true">i</span><div><strong>Resumen con datos parciales</strong><p>Algunas métricas todavía están pendientes de actualización. Un valor en cero puede ser provisional.</p></div></div>
           {/* Stats principales */}
           <AdminStats stats={statsForDisplay} />
           
@@ -223,10 +226,10 @@ const AdminDashboard = () => {
           <div className="dashboard-grid">
             {/* Pedidos Recientes */}
             <div className="dashboard-card recent-orders">
-              <h3>📦 Pedidos Recientes</h3>
+              <div className="cc-card-heading"><div><span className="cc-eyebrow">ACTIVIDAD</span><h3>Pedidos recientes</h3></div><button className="cc-text-button" onClick={() => navigate('/admin/orders')}>Ver todos →</button></div>
               <div className="order-list">
                 {recentOrders.length === 0 ? (
-                  <p className="no-data">No hay pedidos recientes</p>
+                  <div className="cc-empty-orders"><span aria-hidden="true">▤</span><h4>Todavía no hay pedidos recientes</h4><p>Los nuevos pedidos aparecerán acá para que puedas darles seguimiento.</p></div>
                 ) : (
                   recentOrders.map(order => (
                     <div key={order.idpedidos || order.id} className="order-item">
@@ -248,31 +251,31 @@ const AdminDashboard = () => {
 
             {/* Acciones Rápidas */}
             <div className="dashboard-card quick-actions">
-              <h3>⚡ Acciones Rápidas</h3>
+              <span className="cc-eyebrow">ACCESOS</span><h3>Acciones rápidas</h3>
               <div className="action-grid">
                 <button 
                   className="action-btn" 
-                  onClick={() => window.location.href = '/admin/products'}
+                  onClick={() => navigate('/admin/products')}
                 >
-                  ➕ Agregar Producto
+                  ＋ Gestionar productos
                 </button>
                 <button 
                   className="action-btn" 
-                  onClick={() => window.location.href = '/admin/orders'}
+                  onClick={() => navigate('/admin/orders')}
                 >
-                  📊 Ver Reportes
+                  ▤ Ver pedidos
                 </button>
                 <button 
                   className="action-btn" 
-                  onClick={() => window.location.href = '/admin/users'}
+                  onClick={() => navigate('/admin/users')}
                 >
-                  👥 Gestionar Usuarios
+                  ♙ Gestionar usuarios
                 </button>
                 <button 
                   className="action-btn" 
-                  onClick={() => window.location.href = '/admin/settings'}
+                  onClick={() => navigate('/admin/settings')}
                 >
-                  ⚙️ Configuración
+                  ⚙ Configuración
                 </button>
               </div>
             </div>
