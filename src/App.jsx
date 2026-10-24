@@ -21,6 +21,7 @@ import Cart from './pages/Cart'
 import ArmaTuPc from './pages/ArmaTuPc'
 import AdminRoutes from './routes/AdminRoutes'
 import BackToTop from './components/BackToTop';
+import BenefitsBanner from './components/BenefitsBanner';
 import './App.css'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             
             <Route path="/*" element={
               <div className="app-container">
+                <BenefitsBanner />
                 <Navbar />
                 <div className="main-content">
                   <div className="content-wrapper">
